@@ -22,6 +22,7 @@ Inside controller logic
 Now creating a frontend folder and using Google Stitch for UI design via MCP server connection in AntiGravity IDE
 
 And installing inside the folder with -> npm create vite@latest .
+
 - then installing -> npm i tailwindcss @tailwind/vite
 - Importing tailwindcss from '@tailwindcss/vite'
 - And calling inside the plugins
@@ -29,9 +30,21 @@ And installing inside the folder with -> npm create vite@latest .
 Performing Clean needed react setup
 
 Now installing redux toolkit -> npm i @reduxjs/toolkit react-redux
+
 - Then setting up states like user, loading and error
 
 Now after this creating backend service api file in features folder
 
 Installing -> npm i axios
+
+Integrating APIs for Backend to INTERACT with the Frontend using axios
+
+Building the logic inside the Register and Logic components from scratch using Snitch tool MCP server.
+
+States need to be managed as well over the Frontend side -
+
+- Inside `auth.api.js` will return RESPONSE like response.data
+- Then, inside hook `useAuth.js` that API response containing that same data will be DISPATCHED as setUser(data.user)
+- Then, that setUser will be used in the `Register.jsx and Login.jsx` to set the user state
+- And will export the useAuth with return {handleRegister, handleLogin} and also the loading and error states as well.
 

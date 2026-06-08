@@ -12,14 +12,15 @@ export const validateRegistration = [
   body("email").isEmail().withMessage("Please provide a valid email address"),
 
   body("password")
+    .notEmpty()
+    .withMessage("Password is required")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 
   body("contact")
     .notEmpty()
     .withMessage("Contact is required")
-    .customSanitizer((value) => value.replace(/[\s\-\+]/g, ""))
-    .isLength({ min: 10, max: 15 })
+    .customSanitizer((value) => value.replace(/[\s+\-]/g, ""))
     .matches(/^\d{10,15}$/)
     .withMessage("Contact must be between 10 and 15 digits"),
 
@@ -33,3 +34,15 @@ export const validateRegistration = [
 
   validateRequest,
 ];
+
+export const validateLogin = [
+  body("email").isEmail().withMessage("Please provide a valid email address"),
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+
+  validateRequest,
+];
+

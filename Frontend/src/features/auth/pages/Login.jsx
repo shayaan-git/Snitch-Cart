@@ -81,16 +81,13 @@ const InputField = ({
   </div>
 );
 
-const Register = () => {
-  const { handleRegister } = useAuth();
+const Login = () => {
+  const { handleLogin } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    fullname: "",
-    contact: "",
     email: "",
     password: "",
-    isSeller: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -98,10 +95,10 @@ const Register = () => {
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
@@ -110,24 +107,22 @@ const Register = () => {
     setError(null);
     setIsLoading(true);
     try {
-      await handleRegister({
+      await handleLogin({
         email: form.email,
-        contact: form.contact,
-        fullname: form.fullname,
         password: form.password,
-        isSeller: form.isSeller,
       });
 
       navigate("/", { replace: true });
-    
+
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          "Registration failed. Please try again.",
+          "Login failed. Please check your credentials.",
       );
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (
@@ -145,15 +140,16 @@ const Register = () => {
         {/* Optional Branding on Image */}
         <div className="absolute bottom-12 left-12 max-w-md pointer-events-none">
           <h2 className="text-4xl font-bold text-white tracking-tight mb-4">
-            Discover Exclusivity
+            Welcome Back
           </h2>
           <p className="text-[#c8c6c5] text-lg">
-            Join the ultimate premium marketplace for curated fashion and style.
+            Return to the ultimate premium marketplace for curated fashion and
+            style.
           </p>
         </div>
       </div>
 
-      {/* Right Side - Registration Form */}
+      {/* Right Side - Login Form */}
       <div className="flex-1 lg:w-1/2 flex items-center justify-center px-4 py-4 sm:py-8 lg:px-10 lg:py-12 xl:px-20">
         {/* Card */}
         <div
@@ -172,10 +168,10 @@ const Register = () => {
               Welcome to the Snitch
             </span>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#e5e2e1] leading-tight tracking-tight">
-              Create account
+              Log in
             </h1>
             <p className="mt-1.5 lg:mt-2 text-xs lg:text-sm text-[#9a9078]">
-              Join the marketplace. Discover or sell curated items.
+              Enter your details below to continue.
             </p>
           </div>
 
@@ -192,28 +188,6 @@ const Register = () => {
             className="flex flex-col gap-2.5 lg:gap-4"
             noValidate
           >
-            {/* Full Name */}
-            <InputField
-              name="fullname"
-              label="Full Name"
-              value={form.fullname}
-              onChange={handleChange}
-              placeholder="John Doe"
-              autoComplete="name"
-            />
-
-            {/* Contact Number */}
-            <InputField
-              id="contact"
-              name="contact"
-              label="Contact Number"
-              type="tel"
-              value={form.contact}
-              onChange={handleChange}
-              placeholder="+91 98765 43210"
-              autoComplete="tel"
-            />
-
             {/* Email */}
             <InputField
               id="email"
@@ -242,7 +216,7 @@ const Register = () => {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Min. 8 characters"
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   required
                   className="
                     w-full px-2.5 py-2 pr-9 lg:px-3 lg:py-2.5 lg:pr-10
@@ -271,56 +245,9 @@ const Register = () => {
               </div>
             </div>
 
-            {/* isSeller Checkbox */}
-            <label
-              htmlFor="isSeller"
-              className="flex items-center gap-2 lg:gap-2.5 cursor-pointer group mt-0.5"
-            >
-              <div className="relative flex-shrink-0">
-                <input
-                  id="isSeller"
-                  type="checkbox"
-                  name="isSeller"
-                  checked={form.isSeller}
-                  onChange={handleChange}
-                  className="sr-only peer"
-                />
-                {/* Custom checkbox */}
-                <div
-                  className="
-                    w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-[4px] border border-[#27272a]
-                    bg-[#18181b]
-                    peer-checked:bg-[#f5c518] peer-checked:border-[#f5c518]
-                    transition-all duration-200
-                    group-hover:border-[#f5c518]/50
-                    flex items-center justify-center
-                  "
-                >
-                  {form.isSeller && (
-                    <svg
-                      className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-[#131313]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <span className="text-[11px] lg:text-xs text-[#c8c6c5] group-hover:text-[#e5e2e1] transition-colors duration-200 select-none">
-                Register as a Seller
-              </span>
-            </label>
-
             {/* Submit Button */}
             <button
-              id="register-submit"
+              id="login-submit"
               type="submit"
               disabled={isLoading}
               className="
@@ -356,10 +283,10 @@ const Register = () => {
                       d="M4 12a8 8 0 018-8v8H4z"
                     />
                   </svg>
-                  Creating account…
+                  Logging in…
                 </span>
               ) : (
-                "Create Account"
+                "Log in"
               )}
             </button>
           </form>
@@ -373,14 +300,14 @@ const Register = () => {
             <div className="flex-1 h-px bg-[#27272a]" />
           </div>
 
-          {/* Login Link */}
+          {/* Register Link */}
           <p className="text-center text-[11px] lg:text-xs text-[#9a9078]">
-            Already have an account?{" "}
+            Don't have an account?{" "}
             <Link
-              to="/login"
+              to="/register"
               className="text-[#f5c518] font-semibold hover:text-[#ffe08b] transition-colors duration-200 underline underline-offset-4"
             >
-              Log in
+              Register
             </Link>
           </p>
         </div>
@@ -389,4 +316,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
