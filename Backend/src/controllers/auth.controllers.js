@@ -29,15 +29,20 @@ async function sendTokenResponse(user, res, message) {
 }
 
 export const registerUser = async (req, res) => {
+  // console.log("BODY:", req.body);
   try {
     const { email, password, contact, fullname, isSeller } = req.body;
+    // console.log("email:", email, "contact:", contact);
 
     const existingUser = await userModel.findOne({
       $or: [{ email }, { contact }],
     });
+    // console.log("existingUser:", existingUser);
 
     if (existingUser) {
-      return res.status(400).json({ error: "Email or contact already in use" });
+      return res
+        .status(400)
+        .json({ message: "Email or contact already in use" });
     }
 
     const user = await userModel.create({
@@ -50,12 +55,11 @@ export const registerUser = async (req, res) => {
 
     await sendTokenResponse(user, res, "User registered successfully");
 
-    return res.status(201).json({
-      message: "User registered successfully",
-    });
-    
+    // return res.status(201).json({
+    //   message: "User registered successfully",
+    // });
   } catch (error) {
     console.error("Error registering user:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };

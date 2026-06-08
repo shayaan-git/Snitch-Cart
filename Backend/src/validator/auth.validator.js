@@ -18,6 +18,7 @@ export const validateRegistration = [
   body("contact")
     .notEmpty()
     .withMessage("Contact is required")
+    .customSanitizer((value) => value.replace(/[\s\-\+]/g, ""))
     .isLength({ min: 10, max: 15 })
     .matches(/^\d{10,15}$/)
     .withMessage("Contact must be between 10 and 15 digits"),
