@@ -5,7 +5,11 @@ import Login from "../features/auth/pages/Login.jsx";
 export const routes = createBrowserRouter([
   {
     path: "/",
-    element: <h1>Hey Snitch</h1>,
+    element: (
+      <h1>
+        WELCOME TO ELEVATE <p>Always above Ordinary</p>
+      </h1>
+    ),
   },
   {
     path: "/register",

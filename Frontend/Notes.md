@@ -1,4 +1,6 @@
-## Backend Side
+## Elevate - Above the Ordinary!
+
+### Backend Side
 
 Basic Server setup with copilot AI help.
 
@@ -47,4 +49,10 @@ States need to be managed as well over the Frontend side -
 - Then, inside hook `useAuth.js` that API response containing that same data will be DISPATCHED as setUser(data.user)
 - Then, that setUser will be used in the `Register.jsx and Login.jsx` to set the user state
 - And will export the useAuth with return {handleRegister, handleLogin} and also the loading and error states as well.
+
+Google OAuth 2.O Setup stage (in Backend)- npm i passport passport-google-oauth20
+
+adding client ID and client Secret environment variables by wiring up inside `Config.js`.
+
+Importing in Backend `app.js`
 

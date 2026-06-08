@@ -165,7 +165,7 @@ const Login = () => {
           {/* Header */}
           <div className="mb-4 lg:mb-8">
             <span className="inline-block text-[10px] lg:text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f5c518] mb-1.5 lg:mb-3">
-              Welcome to the Snitch
+              Welcome to Elevate
             </span>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#e5e2e1] leading-tight tracking-tight">
               Log in
