@@ -85,6 +85,46 @@ export const loginUser = async (req, res) => {
 };
 
 export const googleCallback = async (req, res) => {
-  console.log(req.user);
-  res.redirect("http://localhost:5173/");
+  // console.log(req.user);
+  const { id, displayName, emails, photos } = req.user;
+
+  const email = emails[0].value;
+  const profilePic = photos[0].value;
+
+  try {
+    let user = await userModel.findOne({
+      $or: [{ email }, { googleId: id }],
+    });
+
+    if (!user) {
+      user = await userModel.create({
+        email,
+        googleId: id,
+        fullname: displayName,
+        profilePic,
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+      },
+      configs.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    res.cookie("token", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      // httpOnly: true, // ✅ Prevents JS access (XSS protection)
+      // secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in prod
+      // sameSite: "lax", // ✅ CSRF protection
+    });
+
+    res.redirect("http://localhost:5173/");
+  } catch (error) {
+    console.error("Error in Google callback:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };

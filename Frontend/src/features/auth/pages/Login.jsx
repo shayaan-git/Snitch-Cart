@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../hook/useAuth.js";
 import { useNavigate } from "react-router";
+import GoogleSigning from "../components/GoogleSigning.jsx";
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -113,7 +114,6 @@ const Login = () => {
       });
 
       navigate("/", { replace: true });
-
     } catch (err) {
       setError(
         err?.response?.data?.message ||
@@ -122,7 +122,6 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
-
   };
 
   return (
@@ -289,6 +288,8 @@ const Login = () => {
                 "Log in"
               )}
             </button>
+
+            <GoogleSigning />
           </form>
 
           {/* Divider */}

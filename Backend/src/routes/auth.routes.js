@@ -9,6 +9,7 @@ import {
   registerUser,
 } from "../controllers/auth.controllers.js";
 import passport from "passport";
+import { configs } from "../config/config.js";
 
 const router = Router();
 
@@ -25,8 +26,13 @@ router.get(
 // This route might confuse but it's the callback URL that Google redirects to after successful authentication. We handle the logic in the auth.controller.js
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false }), // session: false because we are not using sessions, we are using JWTs
-  googleCallback
+  passport.authenticate("google", {
+    session: false,
+    // session: false because we are not using sessions, we are using JWTs
+    failureRedirect:
+      configs.NODE_ENV === "development" ? "http://localhost:5173/login" : "/login",
+  }),
+  googleCallback,
 );
 
 export default router;

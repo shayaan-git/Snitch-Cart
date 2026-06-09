@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../hook/useAuth.js";
 import { useNavigate } from "react-router";
+import GoogleSigning from "../components/GoogleSigning.jsx";
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -119,7 +120,6 @@ const Register = () => {
       });
 
       navigate("/", { replace: true });
-    
     } catch (err) {
       setError(
         err?.response?.data?.message ||
@@ -318,10 +318,6 @@ const Register = () => {
               </span>
             </label>
 
-            <a href="/api/auth/google" className="text-[#f5c518] font-semibold hover:text-[#ffe08b] transition-colors duration-200 underline underline-offset-4">
-              Continue with Google
-            </a>
-
             {/* Submit Button */}
             <button
               id="register-submit"
@@ -366,6 +362,8 @@ const Register = () => {
                 "Create Account"
               )}
             </button>
+
+            <GoogleSigning />
           </form>
 
           {/* Divider */}
