@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateSeller } from "../middlewares/auth.middleware.js";
-import { createProduct } from "../controllers/product.controller.js";
+import { createProduct, getSellerProducts} from "../controllers/product.controller.js";
 import multer from "multer";
 import { createProductValidator } from "../validator/product.validator.js";
 
@@ -21,5 +21,8 @@ router.post(
   upload.array("images", 7),
   createProduct,
 );
+
+// Seller can see products created by him/her
+router.get("/seller", authenticateSeller, getSellerProducts);
 
 export default router;
