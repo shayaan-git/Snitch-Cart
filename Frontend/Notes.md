@@ -56,3 +56,21 @@ adding client ID and client Secret environment variables by wiring up inside `Co
 
 Importing in Backend `app.js`
 
+Now creating `APIs (protected APIs using auth.middleware.js)`, `product.model.js` and creating model and schema to create products.
+
+Need auth.middleware.js for handling those protected routes like for the seller login (not the buyer).
+And to identify who is login, Token is needed for that from jwt and `configs.js`
+
+Now APIs should have routes and controllers.
+So creating the `product.route.js` to handle the products api using import express Router and auth.middleware.js in `product.route.js`
+
+Now creating `product.controller.js`
+
+But before that creating image storage service `storage.service.js` using the ImageKit service -> (in Backend) -> npm install @imagekit/nodejs
+
+Now will setup ImageKit and create `Upload file function` inside services folder `storage.service.js`
+
+Now will install and setUp multer (in Backend) -> npm i multer inside
+`product.route.js`
+
+

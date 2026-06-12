@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import authRouter from "./routes/auth.routes.js";
+import productRouter from "./routes/product.route.js"
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { configs } from "./config/config.js";
@@ -44,6 +45,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRouter);
+app.use("/api/products", productRouter)
 
 // Error handling middleware
 app.use((err, req, res, next) => {

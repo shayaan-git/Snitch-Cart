@@ -55,9 +55,6 @@ export const registerUser = async (req, res) => {
 
     await sendTokenResponse(user, res, "User registered successfully");
 
-    // return res.status(201).json({
-    //   message: "User registered successfully",
-    // });
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -84,6 +81,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// req.body is not used here because...
 export const googleCallback = async (req, res) => {
   // console.log(req.user);
   const { id, displayName, emails, photos } = req.user;
