@@ -12,7 +12,7 @@ function validateRequest(req, res, next) {
 export const createProductValidator = [
   body("title").notEmpty().withMessage("Title is required"),
   body("description").notEmpty().withMessage("Description is required"),
-  body("Price Amount").notEmpty().withMessage("Price Amount is required"),
-  body("Price Currency").notEmpty().withMessage("Price Currency is required"),
+  body("priceAmount").notEmpty().withMessage("Price Amount is required"),
+  body("priceCurrency").notEmpty().withMessage("Price Currency is required"),
   validateRequest,
 ];
