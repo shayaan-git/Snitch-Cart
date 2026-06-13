@@ -13,7 +13,7 @@ const upload = multer({
 
 const router = Router();
 
-// Seller hoga tabhi product create ho payga
+// Seller hoga tabhi product create ho payga isliye user ke role ko authenticate karenge fir products create karwa rahe honge
 router.post(
   "/",
   authenticateSeller,
