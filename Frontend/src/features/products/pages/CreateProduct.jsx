@@ -78,8 +78,8 @@ const CreateProduct = () => {
   /* form state */
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [priceAmount, setPriceAmount] = useState("");
+  const [priceCurrency, setPriceCurrency] = useState("INR");
   const [images, setImages] = useState([]); // array of { file, preview }
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -132,8 +132,8 @@ const CreateProduct = () => {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
-      formData.append("priceAmount", price);
-      formData.append("priceCurrency", currency);
+      formData.append("priceAmount", priceAmount);
+      formData.append("priceCurrency", priceCurrency);
       images.forEach(({ file }) => formData.append("images", file));
       console.log(
         images.length,
@@ -302,11 +302,11 @@ const CreateProduct = () => {
                     {/* Amount */}
                     <div className="relative w-3/4">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4e4633] text-sm pointer-events-none">
-                        {currency === "INR"
+                        {priceCurrency === "INR"
                           ? "₹"
-                          : currency === "EUR"
+                          : priceCurrency === "EUR"
                             ? "€"
-                            : currency === "GBP"
+                            : priceCurrency === "GBP"
                               ? "£"
                               : "$"}
                       </span>
@@ -315,8 +315,8 @@ const CreateProduct = () => {
                         type="number"
                         min="0"
                         step="0.01"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
+                        value={priceAmount}
+                        onChange={(e) => setPriceAmount(e.target.value)}
                         placeholder="0.00"
                         required
                         className="
@@ -334,8 +334,8 @@ const CreateProduct = () => {
                     </div>
                     {/* Currency */}
                     <select
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
+                      value={priceCurrency}
+                      onChange={(e) => setPriceCurrency(e.target.value)}
                       className="
                         w-1/4 bg-[#18181b] border border-[#27272a]
                         rounded-xl px-3 py-3 text-[#e5e2e1] text-sm font-semibold
@@ -446,7 +446,7 @@ const CreateProduct = () => {
 
                 <p className="text-[11px] text-[#4e4633] text-center">
                   Drag &amp; drop or click to upload. Up to {MAX_IMAGES}{" "}
-                  high-resolution images.
+                  images, size less than 5MB
                 </p>
 
                 {/* Hidden file input */}

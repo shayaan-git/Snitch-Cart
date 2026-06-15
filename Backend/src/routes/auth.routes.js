@@ -4,18 +4,22 @@ import {
   validateRegistration,
 } from "../validator/auth.validator.js";
 import {
+  getMe,
   googleCallback,
   loginUser,
   registerUser,
 } from "../controllers/auth.controllers.js";
 import passport from "passport";
 import { configs } from "../config/config.js";
+import { authenticateUser } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 router.post("/register", validateRegistration, registerUser);
 
 router.post("/login", validateLogin, loginUser);
+
+router.get("/me", authenticateUser, getMe);
 
 // This route basically redirects the user to Google's OAuth 2.0 consent screen
 
@@ -32,7 +36,9 @@ router.get(
     session: false,
     // session: false because we are not using sessions, we are using JWTs
     failureRedirect:
-      configs.NODE_ENV === "development" ? "http://localhost:5173/login" : "/login",
+      configs.NODE_ENV === "development"
+        ? "http://localhost:5173/login"
+        : "/login",
   }),
   googleCallback,
 );

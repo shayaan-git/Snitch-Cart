@@ -1,11 +1,13 @@
 import axios from "axios";
 
 const authApiInstance = axios.create({
-  // baseURL: "http://localhost:3000/api/auth",
-  // comment out this backend URL because proxy has been set up in vite.config.js
   baseURL: "/api/auth",
   withCredentials: true,
 });
+/*
+baseURL: "http://localhost:3000/api/auth",
+comment out this backend URL because proxy has been set up in vite.config.js
+*/
 
 export async function register({
   email,
@@ -29,5 +31,11 @@ export async function login({ email, password }) {
     email,
     password,
   });
+  return response.data;
+}
+
+export async function getMe() {
+  const response = await authApiInstance.get("/me");
+
   return response.data;
 }

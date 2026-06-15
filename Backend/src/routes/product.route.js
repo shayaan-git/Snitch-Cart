@@ -16,6 +16,13 @@ const upload = multer({
 
 const router = Router();
 
+
+/**
+ * @route POST /api/products
+ * @description Create a new product
+ * @access Private (Seller Only)
+ */
+
 // Seller hoga tabhi product create ho payga isliye user ke role ko authenticate karenge fir products create karwa rahe honge
 router.post(
   "/",
@@ -25,6 +32,11 @@ router.post(
   createProduct,
 );
 
+/**
+ * @route GET /api/products/seller
+ * @description Get all products of authenticated seller
+ * @access Private (Seller only)
+ */
 // Seller can see products created by him/her
 router.get("/seller", authenticateSeller, getSellerProducts);
 

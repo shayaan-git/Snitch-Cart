@@ -108,12 +108,15 @@ const Login = () => {
     setError(null);
     setIsLoading(true);
     try {
-      await handleLogin({
+      const user = await handleLogin({
         email: form.email,
         password: form.password,
       });
-
-      navigate("/", { replace: true });
+      if (user.role == "buyer") {
+        navigate("/", { replace: true });
+      } else if (user.role == "seller") {
+        navigate("/seller/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(
         err?.response?.data?.message ||
