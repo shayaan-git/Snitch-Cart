@@ -4,15 +4,12 @@ import Login from "../features/auth/pages/Login.jsx";
 import CreateProduct from "../features/products/pages/CreateProduct.jsx";
 import Dashboard from "../features/products/pages/Dashboard.jsx";
 import Protected from "../features/auth/components/Protected.jsx";
+import Homepage from "../features/products/pages/Homepage.jsx";
 
 export const routes = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <h1>
-        WELCOME TO ELEVATE <p>Always above Ordinary</p>
-      </h1>
-    ),
+    element: <Homepage />,
   },
   {
     path: "/register",

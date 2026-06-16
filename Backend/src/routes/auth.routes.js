@@ -22,7 +22,6 @@ router.post("/login", validateLogin, loginUser);
 router.get("/me", authenticateUser, getMe);
 
 // This route basically redirects the user to Google's OAuth 2.0 consent screen
-
 router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] }),

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticateSeller } from "../middlewares/auth.middleware.js";
 import {
   createProduct,
+  getAllProducts,
   getSellerProducts,
 } from "../controllers/product.controller.js";
 import multer from "multer";
@@ -15,7 +16,6 @@ const upload = multer({
 });
 
 const router = Router();
-
 
 /**
  * @route POST /api/products
@@ -39,5 +39,12 @@ router.post(
  */
 // Seller can see products created by him/her
 router.get("/seller", authenticateSeller, getSellerProducts);
+
+/**
+ * @route GET /api/products
+ * @description Get all products
+ * @access Public
+ */
+router.get("/", getAllProducts);
 
 export default router;

@@ -1,10 +1,12 @@
 import {
   getSellerProduct,
   createSellerProduct,
+  getAllProducts,
 } from "../service/product.api.js";
 import { useDispatch } from "react-redux";
 import {
   setSellerProducts,
+  setProducts,
   setProductsLoading,
   setProductsError,
 } from "../state/product.slice.js";
@@ -35,13 +37,23 @@ export const useProduct = () => {
       return data.products;
     } catch (err) {
       const msg =
-        err?.response?.data?.message || "Failed to load products. Please try again.";
+        err?.response?.data?.message ||
+        "Failed to load products. Please try again.";
       dispatch(setProductsError(msg));
     } finally {
       dispatch(setProductsLoading(false));
     }
   }
 
-  return { handleCreateSellerProduct, handleGetSellerProduct };
+  async function handleGetAllProducts() {
+    const data = await getAllProducts();
+    dispatch(setProducts(data.products));
+  }
+
+  return {
+    handleCreateSellerProduct,
+    handleGetSellerProduct,
+    handleGetAllProducts,
+  };
 };
 
