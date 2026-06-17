@@ -307,20 +307,20 @@ const ProductCard = ({ product }) => {
       {/* Body */}
       <div className="flex flex-col gap-2.5 p-5 flex-grow">
         {/* Title */}
-        <h3 className="text-[#1A1A1A] font-normal text-sm leading-snug line-clamp-2 group-hover:text-[#C4A96B] transition-colors duration-200">
+        <h3 className="text-[#1A1A1A] font-normal text-lg truncate leading-snug line-clamp-2 group-hover:text-[#C4A96B] transition-colors duration-200">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="text-[#9A9A9A] text-xs leading-relaxed line-clamp-3 flex-grow">
+        <p className="text-[#9A9A9A] text-sm leading-relaxed line-clamp-3 flex-grow">
           {description || "No description provided."}
         </p>
 
         {/* Price + CTA */}
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
           <span
-            className="text-[#C4A96B] font-light text-base tracking-tight"
-            style={{ fontFamily: "system-ui, sans-serif" }}
+            className="text-[#1A1A1A] font-light text-base tracking-tight"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
           >
             {formatPrice(price?.amount, price?.currency)}
           </span>
@@ -369,7 +369,7 @@ const Homepage = () => {
   return (
     <div
       className="min-h-screen bg-[#FAF8F5] flex"
-      style={{ fontFamily: "system-ui, sans-serif" }}
+      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
     >
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <Sidebar
