@@ -2,6 +2,7 @@ import {
   getSellerProduct,
   createSellerProduct,
   getAllProducts,
+  getProductById,
 } from "../service/product.api.js";
 import { useDispatch } from "react-redux";
 import {
@@ -45,15 +46,25 @@ export const useProduct = () => {
     }
   }
 
+  /**
+   * isme backend API aur state dono manage ho rahi kyuki products ka state manage karna rahega
+   * @returns products of seller
+   */
   async function handleGetAllProducts() {
     const data = await getAllProducts();
     dispatch(setProducts(data.products));
+  }
+
+  async function handleGetProductById(productId) {
+    const data = await getProductById(productId)
+    return data.product
   }
 
   return {
     handleCreateSellerProduct,
     handleGetSellerProduct,
     handleGetAllProducts,
+    handleGetProductById
   };
 };
 

@@ -52,10 +52,10 @@ const InputField = ({
   placeholder,
   autoComplete,
 }) => (
-  <div className="flex flex-col gap-1 lg:gap-1.5">
+  <div className="flex flex-col gap-1.5">
     <label
       htmlFor={id}
-      className="text-[10px] lg:text-[11px] font-semibold uppercase tracking-widest text-[#9a9078]"
+      className="text-[10px] font-normal uppercase tracking-widest text-gray-500"
     >
       {label}
     </label>
@@ -69,14 +69,13 @@ const InputField = ({
       autoComplete={autoComplete}
       required
       className="
-        w-full px-2.5 py-2 lg:px-3 lg:py-2.5
-        bg-[#18181b] border border-[#27272a]
-        rounded-xl text-[#e5e2e1] text-xs lg:text-sm
-        placeholder:text-[#4e4633]
+        w-full pb-1
+        bg-transparent border-0 border-b border-gray-300
+        text-[#1A1A1A] text-sm
+        placeholder:text-gray-300
         outline-none
-        transition-all duration-200
-        focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]/30
-        hover:border-[#4e4633]
+        transition-colors duration-200
+        focus:border-gray-800
       "
     />
   </div>
@@ -131,57 +130,56 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#131313] flex flex-col lg:flex-row">
-      {/* Left Side - Image (Visible on Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-black">
+    /* Outer wrapper — min-h-screen so it grows naturally; flex-col on mobile, flex-row on desktop */
+    <div className="min-h-screen bg-[#FAF8F5] flex flex-col lg:flex-row">
+
+      {/* Left Side — Image Panel: sticky so it stays in view while right side scrolls */}
+      <div className="hidden lg:block lg:w-1/2 relative bg-[#1A1A1A] overflow-hidden sticky top-0 h-screen flex-shrink-0">
         <img
           src="/images/fashion-model.png"
           alt="Premium Fashion Models"
-          className="absolute inset-0 w-full h-full object-cover opacity-90"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
         />
-        {/* Subtle gradient overlay to smoothly blend with the dark background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#131313] pointer-events-none" />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/50 pointer-events-none" />
 
-        {/* Optional Branding on Image */}
-        <div className="absolute bottom-12 left-12 max-w-md pointer-events-none">
-          <h2 className="text-4xl font-bold text-white tracking-tight mb-4">
+        {/* Branding on Image */}
+        <div className="absolute bottom-14 left-14 max-w-md pointer-events-none">
+          <h2
+            className="text-5xl font-light text-white tracking-wide mb-4 leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
             Discover Exclusivity
           </h2>
-          <p className="text-[#c8c6c5] text-lg">
-            Join the ultimate premium marketplace for curated fashion and style.
+          <p className="text-white/60 text-sm uppercase tracking-widest">
+            Join the ultimate premium marketplace
           </p>
         </div>
       </div>
 
-      {/* Right Side - Registration Form */}
-      <div className="flex-1 lg:w-1/2 flex items-center justify-center px-4 py-4 sm:py-8 lg:px-10 lg:py-12 xl:px-20">
-        {/* Card */}
-        <div
-          className="
-            w-full
-            max-w-sm sm:max-w-md lg:max-w-lg
-            bg-[#1c1b1b] border border-[#27272a]
-            rounded-2xl
-            px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10
-            shadow-[0_40px_80px_rgba(0,0,0,0.4)]
-          "
-        >
+      {/* Right Side — scrolls internally if content overflows on very small screens */}
+      <div className="flex-1 lg:w-1/2 flex items-center justify-center px-8 py-6 lg:px-16 xl:px-24 overflow-y-auto">
+        {/* Form Container */}
+        <div className="w-full max-w-sm">
           {/* Header */}
-          <div className="mb-4 lg:mb-8">
-            <span className="inline-block text-[10px] lg:text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f5c518] mb-1.5 lg:mb-3">
+          <div className="mb-6">
+            <span className="inline-block text-[10px] font-normal uppercase tracking-[0.25em] text-[#C4A96B] mb-4">
               Welcome to Elevate
             </span>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#e5e2e1] leading-tight tracking-tight">
+            <h1
+              className="text-3xl font-light text-[#1A1A1A] leading-tight"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            >
               Create account
             </h1>
-            <p className="mt-1.5 lg:mt-2 text-xs lg:text-sm text-[#9a9078]">
+            <p className="mt-2 text-xs text-gray-400 uppercase tracking-widest">
               Join the marketplace. Discover or sell curated items.
             </p>
           </div>
 
           {/* Error Banner */}
           {error && (
-            <div className="mb-3 lg:mb-4 px-2.5 py-1.5 lg:px-3 lg:py-2 rounded-lg bg-[#93000a]/20 border border-[#93000a]/40 text-[#ffb4ab] text-[11px] lg:text-xs">
+            <div className="mb-6 px-4 py-3 border border-red-200 bg-red-50 text-red-600 text-xs tracking-wide">
               {error}
             </div>
           )}
@@ -189,7 +187,7 @@ const Register = () => {
           {/* Form */}
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-2.5 lg:gap-4"
+            className="flex flex-col space-y-4"
             noValidate
           >
             {/* Full Name */}
@@ -227,10 +225,10 @@ const Register = () => {
             />
 
             {/* Password */}
-            <div className="flex flex-col gap-1 lg:gap-1.5">
+            <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="password"
-                className="text-[10px] lg:text-[11px] font-semibold uppercase tracking-widest text-[#9a9078]"
+                className="text-[10px] font-normal uppercase tracking-widest text-gray-500"
               >
                 Password
               </label>
@@ -245,14 +243,13 @@ const Register = () => {
                   autoComplete="new-password"
                   required
                   className="
-                    w-full px-2.5 py-2 pr-9 lg:px-3 lg:py-2.5 lg:pr-10
-                    bg-[#18181b] border border-[#27272a]
-                    rounded-xl text-[#e5e2e1] text-xs lg:text-sm
-                    placeholder:text-[#4e4633]
+                    w-full pb-1 pr-10
+                    bg-transparent border-0 border-b border-gray-300
+                    text-[#1A1A1A] text-sm
+                    placeholder:text-gray-300
                     outline-none
-                    transition-all duration-200
-                    focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]/30
-                    hover:border-[#4e4633]
+                    transition-colors duration-200
+                    focus:border-gray-800
                   "
                 />
                 <button
@@ -260,8 +257,8 @@ const Register = () => {
                   id="toggle-password"
                   onClick={() => setShowPassword((v) => !v)}
                   className="
-                    absolute right-3 top-1/2 -translate-y-1/2
-                    text-[#4e4633] hover:text-[#f5c518]
+                    absolute right-0 top-1/2 -translate-y-1/2
+                    text-gray-400 hover:text-[#C4A96B]
                     transition-colors duration-200 p-1
                   "
                   aria-label={showPassword ? "Hide password" : "Show password"}
@@ -274,7 +271,7 @@ const Register = () => {
             {/* isSeller Checkbox */}
             <label
               htmlFor="isSeller"
-              className="flex items-center gap-2 lg:gap-2.5 cursor-pointer group mt-0.5"
+              className="flex items-center gap-3 cursor-pointer group mt-0.5"
             >
               <div className="relative flex-shrink-0">
                 <input
@@ -288,17 +285,17 @@ const Register = () => {
                 {/* Custom checkbox */}
                 <div
                   className="
-                    w-3.5 h-3.5 lg:w-4 lg:h-4 rounded-[4px] border border-[#27272a]
-                    bg-[#18181b]
-                    peer-checked:bg-[#f5c518] peer-checked:border-[#f5c518]
+                    w-4 h-4 border border-gray-300
+                    bg-transparent
+                    peer-checked:bg-[#C4A96B] peer-checked:border-[#C4A96B]
                     transition-all duration-200
-                    group-hover:border-[#f5c518]/50
+                    group-hover:border-[#C4A96B]/60
                     flex items-center justify-center
                   "
                 >
                   {form.isSeller && (
                     <svg
-                      className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-[#131313]"
+                      className="w-2.5 h-2.5 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -313,7 +310,7 @@ const Register = () => {
                   )}
                 </div>
               </div>
-              <span className="text-[11px] lg:text-xs text-[#c8c6c5] group-hover:text-[#e5e2e1] transition-colors duration-200 select-none">
+              <span className="text-xs text-gray-500 uppercase tracking-widest group-hover:text-[#1A1A1A] transition-colors duration-200 select-none">
                 Register as a Seller
               </span>
             </label>
@@ -324,14 +321,13 @@ const Register = () => {
               type="submit"
               disabled={isLoading}
               className="
-                mt-1 lg:mt-2 w-full py-2.5 lg:py-3
-                bg-[#f5c518] text-[#1a1200] font-semibold text-xs lg:text-sm
-                rounded-xl cursor-pointer
-                transition-all duration-200
-                hover:bg-[#ffe08b] hover:shadow-[0_0_24px_rgba(245,197,24,0.3)]
-                active:scale-[0.98]
-                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-[#f5c518] disabled:hover:shadow-none
-                focus:outline-none focus:ring-2 focus:ring-[#f5c518]/50
+                w-full py-4
+                bg-[#C4A96B] text-white
+                uppercase tracking-[0.2em] text-xs
+                rounded-none cursor-pointer
+                transition-opacity duration-200
+                hover:opacity-90
+                disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
               {isLoading ? (
@@ -367,20 +363,20 @@ const Register = () => {
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-2 lg:gap-3 my-4 lg:my-6">
-            <div className="flex-1 h-px bg-[#27272a]" />
-            <span className="text-[10px] text-[#4e4633] uppercase tracking-widest">
+          <div className="flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-[10px] text-gray-400 uppercase tracking-widest">
               or
             </span>
-            <div className="flex-1 h-px bg-[#27272a]" />
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
 
           {/* Login Link */}
-          <p className="text-center text-[11px] lg:text-xs text-[#9a9078]">
+          <p className="text-center text-xs text-gray-400 uppercase tracking-widest">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-[#f5c518] font-semibold hover:text-[#ffe08b] transition-colors duration-200 underline underline-offset-4"
+              className="text-[#C4A96B] hover:opacity-70 transition-opacity duration-200 underline underline-offset-4"
             >
               Log in
             </Link>

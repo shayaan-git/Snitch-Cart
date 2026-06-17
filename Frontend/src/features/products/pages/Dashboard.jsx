@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useProduct } from "../hook/useProduct.js";
 
 /* ─── Currency symbol map ─────────────────────────────────────────── */
@@ -166,14 +167,171 @@ const RefreshIcon = () => (
   </svg>
 );
 
+/* Sidebar nav icons */
+const DashboardIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+  </svg>
+);
+const CreateIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+const StoreIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016 2.993 2.993 0 002.25-1.016 3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+  </svg>
+);
+
+/* ─── Sidebar ──────────────────────────────────────────────────────── */
+const Sidebar = ({ collapsed, onToggle }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navLinks = [
+    { label: "Dashboard", href: "/seller/dashboard", icon: <DashboardIcon /> },
+    { label: "Create Product", href: "/seller/create-product", icon: <CreateIcon /> },
+    { label: "Store", href: "/", icon: <StoreIcon /> },
+  ];
+  return (
+    <aside
+      className={`
+        hidden lg:flex flex-col bg-white border-r border-gray-100 flex-shrink-0
+        transition-all duration-300 ease-in-out
+        ${collapsed ? "w-14" : "w-56"}
+      `}
+    >
+      {/* Brand + toggle row — same height as HeaderBar */}
+      <div className={`flex items-center border-b border-gray-100 h-14 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-6 justify-between"}`}>
+        {!collapsed && (
+          <span
+            className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
+            Elevate
+          </span>
+        )}
+        <button
+          onClick={onToggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="text-gray-400 hover:text-[#1A1A1A] transition-colors duration-200 p-1 flex-shrink-0"
+        >
+          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </button>
+      </div>
+
+      {/* Nav links */}
+      <nav className="flex flex-col py-6 gap-1 flex-1">
+        {navLinks.map((link) => {
+          const isActive = location.pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              to={link.href}
+              title={collapsed ? link.label : undefined}
+              className={`
+                flex items-center gap-3 py-2.5 transition-colors duration-200
+                ${collapsed ? "justify-center px-0" : "px-6"}
+                ${isActive ? "text-[#C4A96B]" : "text-gray-400 hover:text-[#1A1A1A]"}
+              `}
+            >
+              {link.icon}
+              {!collapsed && (
+                <span className="uppercase tracking-widest text-xs">{link.label}</span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Add Product CTA */}
+      <div className={`pb-8 ${collapsed ? "px-2" : "px-6"}`}>
+        <button
+          id="nav-add-product-btn"
+          onClick={() => navigate("/seller/create-product")}
+          className={`
+            w-full py-3
+            bg-[#C4A96B] text-white
+            uppercase tracking-[0.2em] text-[10px]
+            rounded-none cursor-pointer
+            transition-opacity duration-200
+            hover:opacity-90
+            flex items-center justify-center gap-2
+          `}
+          title={collapsed ? "Add Product" : undefined}
+        >
+          <PlusIcon />
+          {!collapsed && "Add Product"}
+        </button>
+      </div>
+
+      {/* Sub-label */}
+      {!collapsed && (
+        <div className="px-6 pb-6">
+          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Seller Studio</p>
+        </div>
+      )}
+    </aside>
+  );
+};
+
+/* ─── Top Header Bar ───────────────────────────────────────────────── */
+const HeaderBar = () => {
+  const user = useSelector((state) => state.auth.user);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  /* Close on outside click */
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [dropdownOpen]);
+
+  return (
+    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-end px-8 flex-shrink-0">
+      {user?.fullname && (
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen((v) => !v)}
+            className="uppercase tracking-widest text-xs text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200"
+          >
+            {user.fullname}
+          </button>
+
+          {/* Dropdown */}
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-100 shadow-sm min-w-[140px] z-50">
+              <button
+                onClick={() => {
+                  // TODO: wire up logout handler
+                }}
+                className="w-full text-left px-4 py-3 uppercase tracking-widest text-xs text-[#C4A96B] hover:bg-gray-50 transition-colors duration-200"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </header>
+  );
+};
+
 /* ─── Image Carousel ───────────────────────────────────────────────── */
 const ImageCarousel = ({ images, title }) => {
   const [active, setActive] = useState(0);
 
   if (!images || images.length === 0) {
     return (
-      <div className="w-full aspect-[4/3] bg-[#1c1b1b] flex items-center justify-center rounded-t-2xl">
-        <span className="text-[#4e4633] text-xs">No image</span>
+      <div className="w-full aspect-[4/3] bg-gray-50 flex items-center justify-center">
+        <span className="text-gray-300 text-xs uppercase tracking-widest">No image</span>
       </div>
     );
   }
@@ -188,7 +346,7 @@ const ImageCarousel = ({ images, title }) => {
   };
 
   return (
-    <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl group/carousel bg-[#1c1b1b]">
+    <div className="relative w-full aspect-[4/3] overflow-hidden group/carousel bg-gray-50">
       {/* Main image */}
       <img
         src={images[active]?.url}
@@ -198,21 +356,21 @@ const ImageCarousel = ({ images, title }) => {
       />
 
       {/* Gradient overlay bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
 
       {/* Navigation arrows — only show when multiple images */}
       {images.length > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 backdrop-blur-sm"
+            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 bg-white/80 hover:bg-white text-[#1A1A1A] rounded-full p-1.5"
             aria-label="Previous image"
           >
             <ChevronLeftIcon />
           </button>
           <button
             onClick={next}
-            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 backdrop-blur-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 bg-white/80 hover:bg-white text-[#1A1A1A] rounded-full p-1.5"
             aria-label="Next image"
           >
             <ChevronRightIcon />
@@ -230,15 +388,15 @@ const ImageCarousel = ({ images, title }) => {
                 aria-label={`Image ${i + 1}`}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                   i === active
-                    ? "bg-[#f5c518] scale-125"
-                    : "bg-white/40 hover:bg-white/70"
+                    ? "bg-[#C4A96B] scale-125"
+                    : "bg-white/60 hover:bg-white/90"
                 }`}
               />
             ))}
           </div>
 
           {/* Image counter badge */}
-          <span className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+          <span className="absolute top-2 right-2 bg-white/80 text-[#9A9A9A] text-[10px] font-normal px-2 py-0.5">
             {active + 1}/{images.length}
           </span>
         </>
@@ -254,9 +412,9 @@ const ImageCarousel = ({ images, title }) => {
                 e.stopPropagation();
                 setActive(i);
               }}
-              className={`w-8 h-8 rounded overflow-hidden border-2 transition-all duration-150 flex-shrink-0 ${
+              className={`w-8 h-8 overflow-hidden border-2 transition-all duration-150 flex-shrink-0 ${
                 i === active
-                  ? "border-[#f5c518] scale-110"
+                  ? "border-[#C4A96B] scale-110"
                   : "border-transparent opacity-70 hover:opacity-100"
               }`}
               aria-label={`Go to image ${i + 1}`}
@@ -284,8 +442,8 @@ const ProductCard = ({ product, onClick }) => {
       onClick={() => onClick(product)}
       id={`product-card-${product._id}`}
       className="
-        group relative bg-[#1c1b1b] border border-white/[0.07] rounded-2xl overflow-hidden
-        hover:border-[#f5c518]/30 hover:shadow-[0_0_40px_rgba(245,197,24,0.08)]
+        group relative bg-white border border-gray-100 rounded-sm overflow-hidden
+        hover:border-[#C4A96B]/40 hover:shadow-sm
         transition-all duration-300 cursor-pointer
         flex flex-col
       "
@@ -294,23 +452,26 @@ const ProductCard = ({ product, onClick }) => {
       <ImageCarousel images={images} title={title} />
 
       {/* Body */}
-      <div className="flex flex-col gap-3 p-4 flex-grow">
+      <div className="flex flex-col gap-3 p-5 flex-grow">
         {/* Title */}
-        <h3 className="text-[#e5e2e1] font-semibold text-sm leading-snug line-clamp-2 group-hover:text-[#f5c518] transition-colors duration-200">
+        <h3 className="text-[#1A1A1A] font-normal text-sm leading-snug line-clamp-2 group-hover:text-[#C4A96B] transition-colors duration-200">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="text-[#9a9078] text-xs leading-relaxed line-clamp-3 flex-grow">
+        <p className="text-[#9A9A9A] text-xs leading-relaxed line-clamp-3 flex-grow">
           {description || "No description provided."}
         </p>
 
         {/* Price */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/[0.06]">
-          <span className="text-[#f5c518] font-bold text-base tracking-tight">
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+          <span
+            className="text-[#C4A96B] font-light text-base tracking-tight"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          >
             {formatPrice(price?.amount, price?.currency)}
           </span>
-          <span className="text-[#4e4633] text-[10px] font-medium">
+          <span className="text-[#9A9A9A] text-[10px] uppercase tracking-widest">
             Added {formatDate(createdAt)}
           </span>
         </div>
@@ -329,10 +490,10 @@ const ProductCard = ({ product, onClick }) => {
           id={`edit-btn-${product._id}`}
           title="Edit product"
           className="
-            flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-            bg-[#1c1b1b]/90 backdrop-blur-sm border border-white/10
-            text-[#e5e2e1] hover:text-[#f5c518] hover:border-[#f5c518]/40
-            text-[10px] font-semibold uppercase tracking-wider
+            flex items-center gap-1.5 px-2.5 py-1.5
+            bg-white/95 border border-gray-200
+            text-[#1A1A1A] hover:text-[#C4A96B] hover:border-[#C4A96B]/40
+            text-[10px] font-normal uppercase tracking-widest
             transition-all duration-150
           "
         >
@@ -343,10 +504,10 @@ const ProductCard = ({ product, onClick }) => {
           id={`delete-btn-${product._id}`}
           title="Delete product"
           className="
-            flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-            bg-[#1c1b1b]/90 backdrop-blur-sm border border-white/10
-            text-[#e5e2e1] hover:text-[#ffb4ab] hover:border-[#93000a]/50
-            text-[10px] font-semibold uppercase tracking-wider
+            flex items-center gap-1.5 px-2.5 py-1.5
+            bg-white/95 border border-gray-200
+            text-[#1A1A1A] hover:text-red-500 hover:border-red-200
+            text-[10px] font-normal uppercase tracking-widest
             transition-all duration-150
           "
         >
@@ -360,18 +521,18 @@ const ProductCard = ({ product, onClick }) => {
 
 /* ─── Skeleton Loader ──────────────────────────────────────────────── */
 const SkeletonCard = () => (
-  <div className="bg-[#1c1b1b] border border-white/[0.07] rounded-2xl overflow-hidden animate-pulse">
-    <div className="w-full aspect-[4/3] bg-[#2a2a2a]" />
-    <div className="p-4 flex flex-col gap-3">
-      <div className="h-4 bg-[#2a2a2a] rounded-lg w-3/4" />
+  <div className="bg-white border border-gray-100 rounded-sm overflow-hidden animate-pulse">
+    <div className="w-full aspect-[4/3] bg-gray-100" />
+    <div className="p-5 flex flex-col gap-3">
+      <div className="h-3 bg-gray-100 rounded w-3/4" />
       <div className="space-y-1.5">
-        <div className="h-3 bg-[#2a2a2a] rounded w-full" />
-        <div className="h-3 bg-[#2a2a2a] rounded w-5/6" />
-        <div className="h-3 bg-[#2a2a2a] rounded w-2/3" />
+        <div className="h-2.5 bg-gray-100 rounded w-full" />
+        <div className="h-2.5 bg-gray-100 rounded w-5/6" />
+        <div className="h-2.5 bg-gray-100 rounded w-2/3" />
       </div>
-      <div className="flex justify-between pt-2 border-t border-white/[0.06]">
-        <div className="h-5 bg-[#2a2a2a] rounded w-1/4" />
-        <div className="h-3 bg-[#2a2a2a] rounded w-1/3" />
+      <div className="flex justify-between pt-3 border-t border-gray-100">
+        <div className="h-4 bg-gray-100 rounded w-1/4" />
+        <div className="h-2.5 bg-gray-100 rounded w-1/3" />
       </div>
     </div>
   </div>
@@ -388,6 +549,7 @@ const Dashboard = () => {
 
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date-desc"); // date-desc | date-asc | price-asc | price-desc
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     handleGetSellerProduct();
@@ -419,227 +581,239 @@ const Dashboard = () => {
     });
 
   return (
-    <div className="min-h-screen bg-[#131313] text-[#e5e2e1] font-['Inter',sans-serif] antialiased flex flex-col">
-      {/* ── Top Nav ─────────────────────────────────────────────── */}
-      <nav className="w-full sticky top-0 z-50 border-b border-white/10 bg-[#131313]">
-        <div className="flex justify-between items-center w-full px-5 md:px-16 max-w-[1280px] mx-auto h-16 md:h-20">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl md:text-4xl font-bold tracking-tighter text-[#f5c518] leading-none">
-              Elevate
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9a9078] mt-3 ml-1 hidden sm:block">
-              Seller Studio
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-6 h-full">
-            {["Dashboard", "Inventory", "Orders", "Analytics"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className={`text-[11px] font-semibold uppercase tracking-widest transition-colors duration-200 h-full flex items-center border-b-2 px-1 ${
-                  item === "Dashboard"
-                    ? "text-[#f5c518] border-[#f5c518]"
-                    : "text-[#9a9078] border-transparent hover:text-[#e5e2e1] hover:border-white/10"
-                }`}
-              >
-                {item}
-              </a>
-            ))}
-          </div>
-          {/* Add Product CTA (nav) */}
-          <button
-            id="nav-add-product-btn"
-            onClick={() => navigate("/seller/create-product")}
-            className="
-              flex items-center gap-2 px-4 py-2 rounded-xl
-              bg-[#f5c518] text-[#1a1200]
-              text-[11px] font-bold uppercase tracking-widest
-              hover:bg-[#ffe08b] shadow-[0_0_20px_rgba(245,197,24,0.2)]
-              hover:shadow-[0_0_28px_rgba(245,197,24,0.35)]
-              transition-all duration-200 active:scale-[0.97] cursor-pointer
-            "
-          >
-            <PlusIcon />
-            <span className="hidden sm:inline">Add Product</span>
-          </button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#FAF8F5] flex" style={{ fontFamily: "system-ui, sans-serif" }}>
+      {/* ── Sidebar ─────────────────────────────────────────────── */}
+      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((v) => !v)} />
 
-      {/* ── Main ─────────────────────────────────────────────────── */}
-      <main className="flex-grow px-5 md:px-16 py-8 max-w-[1280px] w-full mx-auto flex flex-col gap-8">
-        {/* ── Page Header ────────────────────────────────────────── */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f5c518]">
-              Seller / Dashboard
-            </span>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[#e5e2e1] leading-tight">
-              My Products
-            </h1>
-            <p className="text-[#9a9078] text-sm mt-1">
-              {loading
-                ? "Loading your inventory…"
-                : `${sellerProducts?.length ?? 0} product${(sellerProducts?.length ?? 0) !== 1 ? "s" : ""} in your collection`}
-            </p>
-          </div>
-        </header>
+      {/* ── Page Content ────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
 
-        {/* ── Search + Sort bar ──────────────────────────────────── */}
-        {!loading && !error && (sellerProducts?.length ?? 0) > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-grow">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4e4633] pointer-events-none">
-                <SearchIcon />
+        {/* ── Top Header Bar ──────────────────────────────────────── */}
+        <HeaderBar />
+
+        {/* ── Main ─────────────────────────────────────────────────── */}
+        <main className="flex-grow px-10 py-12 flex flex-col gap-8 overflow-y-auto">
+
+          {/* ── Page Header ────────────────────────────────────────── */}
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-100 pb-8">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-normal uppercase tracking-[0.25em] text-[#C4A96B]">
+                Seller / Dashboard
               </span>
-              <input
-                id="product-search"
-                type="text"
-                placeholder="Search by title…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="
-                  w-full pl-10 pr-4 py-2.5 bg-[#1c1b1b] border border-[#27272a]
-                  rounded-xl text-[#e5e2e1] text-sm placeholder:text-[#4e4633]
-                  outline-none transition-all duration-200
-                  focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]/30
-                  hover:border-[#4e4633]
-                "
-              />
-            </div>
-            {/* Sort */}
-            <select
-              id="product-sort"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="
-                bg-[#1c1b1b] border border-[#27272a] rounded-xl
-                px-4 py-2.5 text-[#e5e2e1] text-sm font-medium
-                outline-none transition-all duration-200 cursor-pointer
-                focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]/30
-                hover:border-[#4e4633] appearance-none min-w-[180px]
-              "
-            >
-              <option value="date-desc" className="bg-[#1c1b1b]">
-                Newest First
-              </option>
-              <option value="date-asc" className="bg-[#1c1b1b]">
-                Oldest First
-              </option>
-              <option value="price-desc" className="bg-[#1c1b1b]">
-                Price: High → Low
-              </option>
-              <option value="price-asc" className="bg-[#1c1b1b]">
-                Price: Low → High
-              </option>
-            </select>
-          </div>
-        )}
-
-        {/* ── States ─────────────────────────────────────────────── */}
-
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        )}
-
-        {/* Error state */}
-        {!loading && error && (
-          <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
-            <div className="text-[#ffb4ab]">
-              <AlertIcon />
-            </div>
-            <div className="flex flex-col gap-2">
-              <h2 className="text-[#e5e2e1] font-semibold text-lg">
-                Something went wrong
-              </h2>
-              <p className="text-[#9a9078] text-sm max-w-sm">{error}</p>
-            </div>
-            <button
-              id="retry-btn"
-              onClick={() => handleGetSellerProduct()}
-              className="
-                flex items-center gap-2 px-5 py-2.5 rounded-xl
-                bg-[#1c1b1b] border border-white/10
-                text-[#e5e2e1] text-[11px] font-semibold uppercase tracking-widest
-                hover:bg-white/5 hover:border-white/20 transition-all duration-200
-                active:scale-[0.97] cursor-pointer
-              "
-            >
-              <RefreshIcon />
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && !error && (sellerProducts?.length ?? 0) === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
-            <div className="text-[#4e4633]">
-              <BoxIcon />
-            </div>
-            <div className="flex flex-col gap-2">
-              <h2 className="text-[#e5e2e1] font-semibold text-xl">
-                No products listed yet
-              </h2>
-              <p className="text-[#9a9078] text-sm max-w-xs">
-                Start building your collection by adding your first luxury item.
+              <h1
+                className="text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight mt-1"
+                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              >
+                My Products
+              </h1>
+              <p className="text-[#9A9A9A] text-xs uppercase tracking-widest mt-1">
+                {loading
+                  ? "Loading your inventory…"
+                  : `${sellerProducts?.length ?? 0} product${(sellerProducts?.length ?? 0) !== 1 ? "s" : ""} in your collection`}
               </p>
             </div>
-            <button
-              id="empty-add-product-btn"
-              onClick={() => navigate("/seller/create-product")}
-              className="
-                flex items-center gap-2 px-6 py-3 rounded-xl
-                bg-[#f5c518] text-[#1a1200]
-                text-[11px] font-bold uppercase tracking-widest
-                hover:bg-[#ffe08b] shadow-[0_0_20px_rgba(245,197,24,0.25)]
-                hover:shadow-[0_0_28px_rgba(245,197,24,0.4)]
-                transition-all duration-200 active:scale-[0.97] cursor-pointer
-              "
-            >
-              <PlusIcon />
-              Add Your First Product
-            </button>
-          </div>
-        )}
+          </header>
 
-        {/* No search results */}
-        {!loading &&
-          !error &&
-          (sellerProducts?.length ?? 0) > 0 &&
-          filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <span className="text-4xl">🔍</span>
-              <h2 className="text-[#e5e2e1] font-semibold text-lg">
-                No products match &ldquo;{search}&rdquo;
-              </h2>
-              <button
-                onClick={() => setSearch("")}
-                className="text-[#f5c518] text-sm hover:underline cursor-pointer"
+          {/* ── Stats Row ──────────────────────────────────────────── */}
+          {!loading && !error && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
+                <p
+                  className="text-5xl font-light text-[#1A1A1A]"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  {sellerProducts?.length ?? 0}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A] mt-2">
+                  Total Products
+                </p>
+              </div>
+              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
+                <p
+                  className="text-5xl font-light text-[#C4A96B]"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  {filtered.length}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A] mt-2">
+                  {search ? "Matching" : "Listed"}
+                </p>
+              </div>
+              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm hidden sm:block">
+                <p
+                  className="text-5xl font-light text-[#1A1A1A]"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  {sellerProducts?.length > 0
+                    ? formatPrice(
+                        Math.max(...(sellerProducts ?? []).map((p) => p.price?.amount ?? 0)),
+                        (sellerProducts ?? [])[0]?.price?.currency ?? "INR",
+                      )
+                    : "—"}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A] mt-2">
+                  Highest Price
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Search + Sort bar ──────────────────────────────────── */}
+          {!loading && !error && (sellerProducts?.length ?? 0) > 0 && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Search */}
+              <div className="relative flex-grow flex items-center">
+                <span className="absolute left-0 text-gray-400 pointer-events-none">
+                  <SearchIcon />
+                </span>
+                <input
+                  id="product-search"
+                  type="text"
+                  placeholder="Search by title…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="
+                    w-full pl-7 pr-4 py-2
+                    bg-transparent border-0 border-b border-gray-300
+                    text-[#1A1A1A] text-sm placeholder:text-gray-300
+                    outline-none transition-colors duration-200
+                    focus:border-gray-800
+                  "
+                />
+              </div>
+              {/* Sort */}
+              <select
+                id="product-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="
+                  bg-transparent border-0 border-b border-gray-300
+                  py-2 px-1 text-[#1A1A1A] text-xs uppercase tracking-widest
+                  outline-none transition-colors duration-200 cursor-pointer
+                  focus:border-gray-800 appearance-none min-w-[180px]
+                "
               >
-                Clear search
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="price-asc">Price: Low → High</option>
+              </select>
+            </div>
+          )}
+
+          {/* ── States ─────────────────────────────────────────────── */}
+
+          {/* Loading skeleton */}
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          )}
+
+          {/* Error state */}
+          {!loading && error && (
+            <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+              <div className="text-red-300">
+                <AlertIcon />
+              </div>
+              <div className="flex flex-col gap-2">
+                <h2
+                  className="text-[#1A1A1A] font-light text-2xl"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  Something went wrong
+                </h2>
+                <p className="text-[#9A9A9A] text-xs uppercase tracking-widest max-w-sm">{error}</p>
+              </div>
+              <button
+                id="retry-btn"
+                onClick={() => handleGetSellerProduct()}
+                className="
+                  flex items-center gap-2 px-6 py-3
+                  border border-gray-200 text-[#1A1A1A]
+                  text-[10px] font-normal uppercase tracking-widest
+                  hover:border-[#C4A96B] hover:text-[#C4A96B] transition-all duration-200
+                  cursor-pointer
+                "
+              >
+                <RefreshIcon />
+                Try Again
               </button>
             </div>
           )}
 
-        {/* Product grid */}
-        {!loading && !error && filtered.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onClick={handleCardClick}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+          {/* Empty state */}
+          {!loading && !error && (sellerProducts?.length ?? 0) === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+              <div className="text-gray-200">
+                <BoxIcon />
+              </div>
+              <div className="flex flex-col gap-2">
+                <h2
+                  className="text-[#1A1A1A] font-light text-2xl"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  No products listed yet
+                </h2>
+                <p className="text-[#9A9A9A] text-xs uppercase tracking-widest max-w-xs">
+                  Start building your collection by adding your first luxury item.
+                </p>
+              </div>
+              <button
+                id="empty-add-product-btn"
+                onClick={() => navigate("/seller/create-product")}
+                className="
+                  flex items-center gap-2 px-8 py-4
+                  bg-[#C4A96B] text-white
+                  text-[10px] font-normal uppercase tracking-[0.2em]
+                  rounded-none
+                  hover:opacity-90 transition-opacity duration-200 cursor-pointer
+                "
+              >
+                <PlusIcon />
+                Add Your First Product
+              </button>
+            </div>
+          )}
+
+          {/* No search results */}
+          {!loading &&
+            !error &&
+            (sellerProducts?.length ?? 0) > 0 &&
+            filtered.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <span className="text-4xl">🔍</span>
+                <h2
+                  className="text-[#1A1A1A] font-light text-xl"
+                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                >
+                  No products match &ldquo;{search}&rdquo;
+                </h2>
+                <button
+                  onClick={() => setSearch("")}
+                  className="text-[#C4A96B] text-xs uppercase tracking-widest hover:underline cursor-pointer"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
+
+          {/* Product grid */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {filtered.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onClick={handleCardClick}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };

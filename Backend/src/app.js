@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Snitch" });
 });
 
-// Routes
+// Routes - Axios ka baseURL + vite ki proxy ke saath aaygi frontend se backend pe
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter)
 
