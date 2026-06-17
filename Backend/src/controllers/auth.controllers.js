@@ -54,7 +54,6 @@ export const registerUser = async (req, res) => {
     });
 
     await sendTokenResponse(user, res, "User registered successfully");
-
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -92,10 +91,19 @@ export const getMe = async (req, res) => {
       email: user.email,
       contact: user.contact,
       fullname: user.fullname,
-      role: user.role
-    }
-  })
-}
+      role: user.role,
+    },
+  });
+};
+
+export const logoutUser = async (req, res) => {
+  res.clearCookie("token");
+
+  return res.status(200).json({
+    message: "Logout successfully",
+    success: true,
+  });
+};
 
 // req.body is not used here because...
 export const googleCallback = async (req, res) => {

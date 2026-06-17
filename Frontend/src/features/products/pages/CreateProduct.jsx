@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Link, useLocation } from "react-router";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
+import HeaderBar from "../components/HeaderBar";
 
 /* ─── SVG Icons ──────────────────────────────────────────────────── */
 const CameraIcon = () => (
@@ -82,30 +83,77 @@ const PlusIcon = () => (
 
 /* Sidebar chevron icons */
 const ChevronLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
   </svg>
 );
 const ChevronRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
   </svg>
 );
 
 /* Sidebar nav icons */
 const DashboardIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 flex-shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+    />
   </svg>
 );
 const CreateIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 flex-shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 4.5v15m7.5-7.5h-15"
+    />
   </svg>
 );
 const StoreIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016 2.993 2.993 0 002.25-1.016 3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 flex-shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016 2.993 2.993 0 002.25-1.016 3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"
+    />
   </svg>
 );
 
@@ -120,7 +168,11 @@ const Sidebar = ({ collapsed, onToggle }) => {
   const navigate = useNavigate();
   const navLinks = [
     { label: "Dashboard", href: "/seller/dashboard", icon: <DashboardIcon /> },
-    { label: "Create Product", href: "/seller/create-product", icon: <CreateIcon /> },
+    {
+      label: "Create Product",
+      href: "/seller/create-product",
+      icon: <CreateIcon />,
+    },
     { label: "Store", href: "/", icon: <StoreIcon /> },
   ];
   return (
@@ -132,7 +184,9 @@ const Sidebar = ({ collapsed, onToggle }) => {
       `}
     >
       {/* Brand + toggle row — same height as HeaderBar */}
-      <div className={`flex items-center border-b border-gray-100 h-14 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-6 justify-between"}`}>
+      <div
+        className={`flex items-center border-b border-gray-100 h-14 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-6 justify-between"}`}
+      >
         {!collapsed && (
           <span
             className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
@@ -167,7 +221,9 @@ const Sidebar = ({ collapsed, onToggle }) => {
             >
               {link.icon}
               {!collapsed && (
-                <span className="uppercase tracking-widest text-xs">{link.label}</span>
+                <span className="uppercase tracking-widest text-xs">
+                  {link.label}
+                </span>
               )}
             </Link>
           );
@@ -198,7 +254,9 @@ const Sidebar = ({ collapsed, onToggle }) => {
       {/* Sub-label */}
       {!collapsed && (
         <div className="px-6 pb-6">
-          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Seller Studio</p>
+          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+            Seller Studio
+          </p>
         </div>
       )}
     </aside>
@@ -206,53 +264,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
 };
 
 /* ─── Top Header Bar ───────────────────────────────────────────────── */
-const HeaderBar = () => {
-  const user = useSelector((state) => state.auth.user);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  /* Close on outside click */
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    }
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [dropdownOpen]);
-
-  return (
-    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-end px-8 flex-shrink-0">
-      {user?.fullname && (
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setDropdownOpen((v) => !v)}
-            className="uppercase tracking-widest text-xs text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200"
-          >
-            {user.fullname}
-          </button>
-
-          {/* Dropdown */}
-          {dropdownOpen && (
-            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-100 shadow-sm min-w-[140px] z-50">
-              <button
-                onClick={() => {
-                  // TODO: wire up logout handler
-                }}
-                className="w-full text-left px-4 py-3 uppercase tracking-widest text-xs text-[#C4A96B] hover:bg-gray-50 transition-colors duration-200"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </header>
-  );
-};
+<HeaderBar />;
 
 /* ─── Component ──────────────────────────────────────────────────── */
 const CreateProduct = () => {
@@ -341,13 +353,18 @@ const CreateProduct = () => {
   const emptySlots = Math.max(0, MAX_IMAGES - filledSlots - 1); // -1 for add button
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div
+      className="min-h-screen bg-[#FAF8F5] flex"
+      style={{ fontFamily: "system-ui, sans-serif" }}
+    >
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((v) => !v)} />
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed((v) => !v)}
+      />
 
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-
         {/* ── Top Header Bar ──────────────────────────────────────── */}
         <HeaderBar />
 

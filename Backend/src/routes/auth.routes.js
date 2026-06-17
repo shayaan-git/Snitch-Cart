@@ -7,6 +7,7 @@ import {
   getMe,
   googleCallback,
   loginUser,
+  logoutUser,
   registerUser,
 } from "../controllers/auth.controllers.js";
 import passport from "passport";
@@ -20,6 +21,8 @@ router.post("/register", validateRegistration, registerUser);
 router.post("/login", validateLogin, loginUser);
 
 router.get("/me", authenticateUser, getMe);
+
+router.post('/logout', logoutUser);
 
 // This route basically redirects the user to Google's OAuth 2.0 consent screen
 router.get(
