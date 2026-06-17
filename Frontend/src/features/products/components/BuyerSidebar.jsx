@@ -1,11 +1,26 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
-import { ChevronLeftIcon, ChevronRightIcon, StoreNavIcon } from "./icons.jsx";
-
-const navLinks = [{ label: "Store", href: "/", icon: <StoreNavIcon /> }];
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  StoreNavIcon,
+  DashboardNavIcon,
+} from "./icons.jsx";
 
 const BuyerSidebar = ({ collapsed, onToggle }) => {
   const location = useLocation();
+  const user = useSelector((state) => state.auth.user);
+
+  /* Build nav links based on logged-in role.
+     Sellers visiting the store get a shortcut back to their dashboard.
+     Buyers (and guests) only see the Store link. */
+  const navLinks = [
+    ...(user?.role === "seller"
+      ? [{ label: "Dashboard", href: "/seller/dashboard", icon: <DashboardNavIcon /> }]
+      : []),
+    { label: "Store", href: "/", icon: <StoreNavIcon /> },
+  ];
 
   return (
     <aside
@@ -65,7 +80,9 @@ const BuyerSidebar = ({ collapsed, onToggle }) => {
       {/* Sub-label */}
       {!collapsed && (
         <div className="px-6 pb-6">
-          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Store</p>
+          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+            {user?.role === "seller" ? "Seller Studio" : "Store"}
+          </p>
         </div>
       )}
     </aside>
