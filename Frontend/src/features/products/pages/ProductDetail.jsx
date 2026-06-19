@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
 import HeaderBar from "../components/HeaderBar.jsx";
+import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import { formatPrice } from "../utils/formatters.js";
 import {
   ArrowLeftIcon,
@@ -10,79 +11,9 @@ import {
   CartIcon,
   ChevronImgLeft,
   ChevronImgRight,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   SparkleIcon,
-  StoreIcon,
 } from "../components/icons.jsx";
 
-/* ─── Sidebar (identical to Homepage) ─────────────────────────────── */
-const Sidebar = ({ collapsed, onToggle }) => {
-  const location = useLocation();
-  const navLinks = [{ label: "Store", href: "/", icon: <StoreIcon /> }];
-  return (
-    <aside
-      className={`
-        hidden lg:flex flex-col bg-white border-r border-gray-100 flex-shrink-0
-        transition-all duration-300 ease-in-out
-        ${collapsed ? "w-14" : "w-56"}
-      `}
-    >
-      <div
-        className={`flex items-center border-b border-gray-100 h-14 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-6 justify-between"}`}
-      >
-        {!collapsed && (
-          <span
-            className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-          >
-            Elevate
-          </span>
-        )}
-        <button
-          onClick={onToggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="text-gray-400 hover:text-[#1A1A1A] transition-colors duration-200 p-1 flex-shrink-0"
-        >
-          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </button>
-      </div>
-
-      <nav className="flex flex-col py-6 gap-1 flex-1">
-        {navLinks.map((link) => {
-          const isActive = location.pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              to={link.href}
-              title={collapsed ? link.label : undefined}
-              className={`
-                flex items-center gap-3 py-2.5 transition-colors duration-200
-                ${collapsed ? "justify-center px-0" : "px-6"}
-                ${isActive ? "text-[#C4A96B]" : "text-gray-400 hover:text-[#1A1A1A]"}
-              `}
-            >
-              {link.icon}
-              {!collapsed && (
-                <span className="uppercase tracking-widest text-xs">
-                  {link.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {!collapsed && (
-        <div className="px-6 pb-6">
-          <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
-            Store
-          </p>
-        </div>
-      )}
-    </aside>
-  );
-};
 
 /* ─── Skeleton Loader ──────────────────────────────────────────────── */
 const SkeletonDetail = () => (
@@ -123,6 +54,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const { handleGetProductById } = useProduct();
 
@@ -130,7 +62,7 @@ const ProductDetail = () => {
     (async () => {
       setLoading(true);
       const data = await handleGetProductById(productId);
-      setProduct(data);
+      setProduct(data?.product || data);
       setLoading(false);
     })();
   }, [productId]);
@@ -143,16 +75,18 @@ const ProductDetail = () => {
       className="h-screen overflow-hidden bg-[#FAF8F5] flex"
       style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
     >
-      {/* ── Sidebar ──────────────────────────────────────────────── */}
-      <Sidebar
+      {/* ── Sidebar ────────────────────────────────────────────────── */}
+      <BuyerSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((v) => !v)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      {/* ── Page Content ─────────────────────────────────────────── */}
+      {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* ── Header ──────────────────────────────────────────────── */}
-        <HeaderBar />
+        {/* ── Header ────────────────────────────────────────────────── */}
+        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
 
         {/* ── Breadcrumb / Back ────────────────────────────────────── */}
         <div className="px-10 pt-8 pb-2 flex items-center gap-2 text-xs uppercase tracking-widest text-[#9A9A9A]">

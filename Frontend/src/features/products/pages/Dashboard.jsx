@@ -27,6 +27,7 @@ const Dashboard = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date-desc");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     handleGetSellerProduct();
@@ -63,12 +64,14 @@ const Dashboard = () => {
       <SellerSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((v) => !v)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
-        <HeaderBar />
+        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
 
         {/* ── Main ─────────────────────────────────────────────────── */}
         <main className="flex-grow px-10 py-12 flex flex-col gap-8 overflow-y-auto">

@@ -9,6 +9,8 @@ import ProductDetail from "../features/products/pages/ProductDetail.jsx";
 import SellerProductDetails from "../features/products/pages/SellerProductDetails.jsx";
 
 export const routes = createBrowserRouter([
+
+  // buyer routes + seller can also access these
   {
     path: "/",
     element: <Homepage />,
@@ -27,6 +29,7 @@ export const routes = createBrowserRouter([
     element: <ProductDetail />,
   },
 
+  // seller routes
   {
     path: "/seller",
     children: [

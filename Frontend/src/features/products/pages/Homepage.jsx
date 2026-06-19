@@ -15,6 +15,7 @@ const Homepage = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -38,12 +39,14 @@ const Homepage = () => {
       <BuyerSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((v) => !v)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
-        <HeaderBar />
+        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
 
         {/* ── Hero Banner ─────────────────────────────────────────── */}
         <section className="w-full px-10 py-16 border-b border-gray-100 bg-white">

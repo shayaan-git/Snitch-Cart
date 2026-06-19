@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../auth/hook/useAuth.js";
+import { HamburgerIcon } from "./icons.jsx";
 
-const HeaderBar = () => {
+const HeaderBar = ({ onMenuClick }) => {
   const user = useSelector((state) => state.auth.user);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -24,7 +25,19 @@ const HeaderBar = () => {
   }, [dropdownOpen]);
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-end px-8 flex-shrink-0">
+    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-8 flex-shrink-0">
+      {/* ── Mobile hamburger (hidden on desktop) ── */}
+      <button
+        onClick={onMenuClick}
+        aria-label="Open navigation menu"
+        className="lg:hidden text-gray-400 hover:text-[#1A1A1A] transition-colors duration-200 p-1 cursor-pointer"
+      >
+        <HamburgerIcon />
+      </button>
+
+      {/* Spacer so user name stays right-aligned on desktop */}
+      <div className="hidden lg:block" />
+
       {user?.fullname && (
         <div className="relative" ref={dropdownRef}>
           <button
