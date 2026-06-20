@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { authenticateSeller } from "../middlewares/auth.middleware.js";
 import {
+  addProductVariant,
   createProduct,
   getAllProducts,
   getProductDetails,
   getSellerProducts,
 } from "../controllers/product.controller.js";
 import multer from "multer";
-import { createProductValidator } from "../validator/product.validator.js";
+import { createProductValidator, addVariantValidator } from "../validator/product.validator.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -54,5 +55,18 @@ router.get("/", getAllProducts);
  * @access Public
  */
 router.get("/detail/:id", getProductDetails);
+
+/**
+ * @route POST /api/products/productId/variants
+ * @description Add a new variant to a product
+ * @access Private (Seller Only)
+ */
+router.post(
+  "/:productId/variants",
+  authenticateSeller,
+  upload.array("images", 8),
+  addVariantValidator,
+  addProductVariant,
+);
 
 export default router;

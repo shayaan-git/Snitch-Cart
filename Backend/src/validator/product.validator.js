@@ -16,3 +16,10 @@ export const createProductValidator = [
   body("priceCurrency").notEmpty().withMessage("Price Currency is required"),
   validateRequest,
 ];
+
+export const addVariantValidator = [
+  body("priceAmount").notEmpty().withMessage("Price Amount is required"),
+  body("priceCurrency").notEmpty().withMessage("Price Currency is required"),
+  validateRequest,
+];
+

@@ -4,12 +4,7 @@ import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
 import HeaderBar from "../components/HeaderBar";
 import SellerSidebar from "../components/SellerSidebar";
-import {
-  CameraIcon,
-  PlusIcon,
-  SpinnerIcon,
-  XIcon,
-} from "../components/icons";
+import { CameraIcon, PlusIcon, SpinnerIcon, XIcon } from "../components/icons";
 
 /* ─── Constants ──────────────────────────────────────────────────── */
 const MAX_DESC = 500;
@@ -88,7 +83,7 @@ const CreateProduct = () => {
         images.map((i) => i.file),
       );
       await handleCreateSellerProduct(formData);
-      navigate("/seller/products", { replace: true });
+      navigate("/seller/dashboard", { replace: true });
     } catch (err) {
       setError(
         err?.response?.data?.message ||
