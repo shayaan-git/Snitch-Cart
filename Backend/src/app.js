@@ -40,7 +40,7 @@ passport.use(
 
 // Basic Route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Snitch" });
+  res.json({ message: "Welcome to Elevate" });
 });
 
 // Routes - Axios ka baseURL + vite ki proxy ke saath aaygi frontend se backend pe

@@ -57,13 +57,13 @@ export const useProduct = () => {
   }
 
   async function handleGetProductById(productId) {
-    const data = await getProductById(productId)
-    return data.product
+    const data = await getProductById(productId);
+    return data.product;
   }
 
   async function handleAddProductVariant(productId, newProductVariantparams) {
-    const data = await addProductVariant(productId, newProductVariantparams)
-    return data
+    const data = await addProductVariant(productId, newProductVariantparams);
+    return data;
   }
 
   return {
@@ -71,7 +71,6 @@ export const useProduct = () => {
     handleGetSellerProduct,
     handleGetAllProducts,
     handleGetProductById,
-    handleAddProductVariant
+    handleAddProductVariant,
   };
 };
-

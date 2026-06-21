@@ -69,7 +69,7 @@ const VariantCard = ({ variant, idx, onEdit, onDelete, onStockChange }) => {
           };
 
   return (
-    <div className="bg-white border border-gray-100 flex flex-col sm:flex-row gap-0 overflow-hidden hover:border-gray-200 transition-colors duration-200">
+    <div className="bg-white border border-gray-100 flex flex-row sm:flex-row gap-0 overflow-hidden hover:border-gray-200 transition-colors duration-200">
       {/* Image strip */}
       <div className="sm:w-32 flex-shrink-0 bg-[#FAF8F5] flex items-center justify-center border-b sm:border-b-0 sm:border-r border-gray-100 p-3 min-h-[100px]">
         {variant.images && variant.images.length > 0 ? (
@@ -514,8 +514,6 @@ const SellerProductDetails = () => {
     },
     [editingIdx, productId, handleAddProductVariant, variants],
   );
-
-  console.log(variants);
 
   const handleDeleteVariant = useCallback((idx) => {
     setVariants((prev) => prev.filter((_, i) => i !== idx));

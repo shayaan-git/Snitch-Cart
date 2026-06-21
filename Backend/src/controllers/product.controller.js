@@ -96,9 +96,9 @@ export async function addProductVariant(req, res) {
       files.map(async (file) => {
         const image = await uploadFile({
           buffer: file.buffer,
-          fileName: file.originalname,  // multer sets originalname, not fileName
+          fileName: file.originalname,
         });
-        return { url: image.url };      // schema expects { url: String }
+        return { url: image.url };
       }),
     );
     imageVarient.forEach((image) => images.push(image));
