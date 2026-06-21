@@ -46,13 +46,22 @@ const SkeletonDetail = () => (
 /* ─── helpers ──────────────────────────────────────────────────────── */
 
 /**
- * Collect every unique attribute key present across all variants.
- * e.g. ["Color", "Size"]
+ * Collect every unique attribute key across all variants.
+ * Keys are normalised to Title Case so "size", "Size", "SIZE" all merge into "Size".
  */
+function normaliseKey(k = "") {
+  return k.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
 function collectAttrKeys(variants = []) {
-  const keys = new Set();
-  variants.forEach((v) => Object.keys(v.attributes ?? {}).forEach((k) => keys.add(k)));
-  return [...keys];
+  const keys = new Map(); // normalised → display label
+  variants.forEach((v) =>
+    Object.keys(v.attributes ?? {}).forEach((k) => {
+      const n = normaliseKey(k);
+      if (!keys.has(n)) keys.set(n, n);
+    }),
+  );
+  return [...keys.values()];
 }
 
 /**
@@ -64,18 +73,49 @@ function splitAttrValue(raw = "") {
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Look up a variant's attribute value using a normalised key (case-insensitive).
+ */
+function getAttrByNormKey(variant, normKey) {
+  const attrs = variant.attributes ?? {};
+  for (const [k, v] of Object.entries(attrs)) {
+    if (normaliseKey(k) === normKey) return v;
+  }
+  return "";
+}
+
 function findBestVariant(variants = [], selection = {}) {
-  if (!variants.length) return null;
+  const selectionKeys = Object.keys(selection);
+  // If nothing is selected yet, don't snap to any variant — show the base product
+  if (!variants.length || selectionKeys.length === 0) return null;
+
   let best = null;
   let bestScore = -1;
+  // Tie-breaker: prefer the variant whose total number of attribute keys is
+  // closest to the number of selected keys.  This prevents a broad variant
+  // (e.g. one whose Size field contains "Large, Medium") from beating a
+  // specific variant (Size: Large) when both score the same on the selection.
+  let bestKeyDiff = Infinity;
+
   for (const v of variants) {
     let score = 0;
     for (const [key, val] of Object.entries(selection)) {
-      // A variant matches if its attribute value (possibly comma-separated) contains the chosen token
-      const tokens = splitAttrValue(v.attributes?.[key] ?? "");
+      // Use getAttrByNormKey so "size" / "Size" / "SIZE" all resolve correctly
+      const tokens = splitAttrValue(getAttrByNormKey(v, key));
       if (tokens.includes(val)) score++;
     }
-    if (score > bestScore) { bestScore = score; best = v; }
+
+    const variantKeyCount = Object.keys(v.attributes ?? {}).length;
+    const keyDiff = Math.abs(variantKeyCount - selectionKeys.length);
+
+    if (
+      score > bestScore ||
+      (score === bestScore && keyDiff < bestKeyDiff)
+    ) {
+      bestScore  = score;
+      bestKeyDiff = keyDiff;
+      best = v;
+    }
   }
   return best;
 }
@@ -88,6 +128,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const [hoveredImg, setHoveredImg] = useState(null); // preview on hover without committing
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -123,10 +164,11 @@ const ProductDetail = () => {
   const displayPrice =
     activeVariant?.price ?? product?.price;
 
-  // Stock from active variant (optional display)
-  const activeStock = activeVariant?.stock ?? null;
+  // Stock from active variant, or fall back to base product stock
+  const activeStock = activeVariant?.stock ?? product?.stock ?? null;
 
-  const currentImage = images[activeImg]?.url;
+  // Show hovered thumbnail as preview, fall back to the committed active image
+  const currentImage = images[hoveredImg ?? activeImg]?.url;
 
   // ── Handler: pick an attribute value (toggle-style) ─────────────────
   function handleAttrSelect(key, value) {
@@ -137,19 +179,52 @@ const ProductDetail = () => {
         delete next[key];
         return next;
       }
-      // Otherwise switch to the new value for this key
-      return { ...prev, [key]: value };
+
+      // Start with the new selection for this key
+      const next = { ...prev, [key]: value };
+
+      // ── Auto-clear incompatible sibling selections ──────────────
+      // For every OTHER selected key, check whether its currently-selected
+      // value can still be found in at least one variant that also matches
+      // the newly chosen key=value.  If not, drop it so the UI stays clean.
+      Object.keys(next).forEach((k) => {
+        if (k === key) return; // skip the key we just set
+        const sv = next[k];
+        const compatible = variants.some((v) => {
+          const kTokens = splitAttrValue(getAttrByNormKey(v, k));
+          if (!kTokens.includes(sv)) return false;
+          const newTokens = splitAttrValue(getAttrByNormKey(v, key));
+          return newTokens.includes(value);
+        });
+        if (!compatible) delete next[k];
+      });
+
+      return next;
     });
     setActiveImg(0);
   }
 
-  // ── Collect unique values per attribute key (comma-split) ────────────
+  // ── Collect unique values per attribute key (comma-split, normalised) ─
   function valuesForKey(key) {
     const seen = new Set();
     variants.forEach((v) => {
-      splitAttrValue(v.attributes?.[key] ?? "").forEach((token) => seen.add(token));
+      splitAttrValue(getAttrByNormKey(v, key)).forEach((token) => seen.add(token));
     });
     return [...seen];
+  }
+
+  // ── Which attribute keys actually have ≥1 available chip right now? ─
+  function hasAvailableValues(key) {
+    return valuesForKey(key).some((val) =>
+      variants.some((v) => {
+        const tokens = splitAttrValue(getAttrByNormKey(v, key));
+        if (!tokens.includes(val)) return false;
+        return Object.entries(selectedAttrs).every(([k, sv]) => {
+          if (k === key) return true;
+          return splitAttrValue(getAttrByNormKey(v, k)).includes(sv);
+        });
+      }),
+    );
   }
 
   return (
@@ -198,7 +273,7 @@ const ProductDetail = () => {
         </div>
 
         {/* ── Main ─────────────────────────────────────────────────── */}
-        <main className="flex-1 px-10 py-8 overflow-y-auto">
+        <main className="flex-1 px-10 py-8 min-h-0 overflow-y-auto">
           {loading ? (
             <SkeletonDetail />
           ) : !product ? (
@@ -225,7 +300,7 @@ const ProductDetail = () => {
                 {/* Gallery inner: [thumbs col] [main image] */}
                 <div className="flex flex-row-reverse gap-3">
                   {/* Main image — takes the remaining width */}
-                  <div className="relative flex-1 aspect-[4/3] max-h-[480px] bg-[#FAF8F5] border border-gray-100 rounded-sm overflow-hidden group">
+                  <div className="relative flex-1 aspect-[3/4] lg:aspect-[4/5] max-h-[480px] bg-[#FAF8F5] border border-gray-100 rounded-sm overflow-hidden group">
                     {currentImage ? (
                       <img
                         key={activeImg}
@@ -299,29 +374,39 @@ const ProductDetail = () => {
 
                   {/* Vertical thumbnail strip — left of main image */}
                   {images.length > 1 && (
-                    <div className="hidden lg:flex flex-col gap-2 overflow-y-auto max-h-[480px]">
-                      {images.map((img, idx) => (
-                        <button
-                          key={img._id ?? idx}
-                          id={`product-detail-thumb-${idx}`}
-                          onClick={() => setActiveImg(idx)}
-                          className={`
-                            w-16 h-16 flex-shrink-0 border rounded-sm overflow-hidden transition-all duration-200
-                            ${
-                              activeImg === idx
-                                ? "border-[#C4A96B] ring-1 ring-[#C4A96B]/40"
-                                : "border-gray-100 hover:border-[#C4A96B]/50"
-                            }
-                          `}
-                          aria-label={`View image ${idx + 1}`}
-                        >
-                          <img
-                            src={img.url}
-                            alt={`${product.title} thumbnail ${idx + 1}`}
-                            className="w-full h-full object-cover cursor-pointer hover:bg-[#C4A96B]"
-                          />
-                        </button>
-                      ))}
+                    <div className="hidden lg:flex flex-col gap-2 overflow-y-auto max-h-[600px]">
+                      {images.map((img, idx) => {
+                        const isActive  = activeImg === idx;
+                        const isHovered = hoveredImg === idx;
+                        return (
+                          <button
+                            key={img._id ?? idx}
+                            id={`product-detail-thumb-${idx}`}
+                            onClick={() => { setActiveImg(idx); setHoveredImg(null); }}
+                            onMouseEnter={() => setHoveredImg(idx)}
+                            onMouseLeave={() => setHoveredImg(null)}
+                            className={`
+                              w-16 h-16 flex-shrink-0 border rounded-sm overflow-hidden
+                              transition-all duration-200 cursor-pointer
+                              ${
+                                isActive
+                                  ? "border-[#C4A96B] ring-1 ring-[#C4A96B]/40"
+                                  : isHovered
+                                  ? "border-[#C4A96B]/70 ring-1 ring-[#C4A96B]/20 scale-105"
+                                  : "border-gray-100"
+                              }
+                            `}
+                            aria-label={`View image ${idx + 1}`}
+                            aria-pressed={isActive}
+                          >
+                            <img
+                              src={img.url}
+                              alt={`${product.title} thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -356,7 +441,7 @@ const ProductDetail = () => {
               </div>
 
               {/* ── Product Info ──────────────────────────────────── */}
-              <div className="flex-1 flex flex-col gap-6 lg:pt-2">
+              <div className="flex-1 flex flex-col gap-4 lg:pt-2">
                 {/* Label */}
                 <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em]">
                   <SparkleIcon />
@@ -416,71 +501,71 @@ const ProductDetail = () => {
                 {/* ── Variant Selector ───────────────────────────────── */}
                 {hasVariants && attrKeys.length > 0 && (
                   <div className="flex flex-col gap-4">
-                    {attrKeys.map((key) => (
-                      <div key={key} className="flex flex-col gap-2">
-                        {/* Attribute label */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
-                            {key}
-                          </span>
-                          {selectedAttrs[key] && (
-                            <span className="text-[10px] text-[#C4A96B] font-light tracking-wide">
-                              — {selectedAttrs[key]}
+                    {attrKeys
+                      .filter((key) => hasAvailableValues(key))
+                      .map((key) => (
+                        <div key={key} className="flex flex-col gap-2">
+                          {/* Attribute label */}
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+                              {key}
                             </span>
-                          )}
-                        </div>
+                            {selectedAttrs[key] && (
+                              <span className="text-[10px] text-[#C4A96B] font-light tracking-wide">
+                                — {selectedAttrs[key]}
+                              </span>
+                            )}
+                          </div>
 
-                        {/* Value chips */}
-                        <div className="flex flex-wrap gap-2">
-                          {valuesForKey(key).map((val) => {
-                            const isSelected = selectedAttrs[key] === val;
-                            // Check if this value exists in at least one variant that also matches other selected attrs
-                            const isAvailable = variants.some((v) => {
-                              // This variant must include `val` in its (comma-split) list for this key
-                              const tokens = splitAttrValue(v.attributes?.[key] ?? "");
-                              if (!tokens.includes(val)) return false;
-                              // Every other already-selected attr must also match (via comma-split)
-                              return Object.entries(selectedAttrs).every(([k, sv]) => {
-                                if (k === key) return true;
-                                return splitAttrValue(v.attributes?.[k] ?? "").includes(sv);
+                          {/* Value chips */}
+                          <div className="flex flex-wrap gap-2">
+                            {valuesForKey(key).map((val) => {
+                              const isSelected = selectedAttrs[key] === val;
+                              // Available if at least one variant has this val AND matches all other selected attrs
+                              const isAvailable = variants.some((v) => {
+                                const tokens = splitAttrValue(getAttrByNormKey(v, key));
+                                if (!tokens.includes(val)) return false;
+                                return Object.entries(selectedAttrs).every(([k, sv]) => {
+                                  if (k === key) return true;
+                                  return splitAttrValue(getAttrByNormKey(v, k)).includes(sv);
+                                });
                               });
-                            });
 
-                            return (
-                              <button
-                                key={val}
-                                id={`variant-${key}-${val}`}
-                                onClick={() => handleAttrSelect(key, val)}
-                                disabled={!isAvailable}
-                                className={`
-                                  relative px-4 py-2 text-[10px] uppercase tracking-widest
-                                  border transition-all duration-200 cursor-pointer
-                                  ${
-                                    isSelected
-                                      ? "border-[#C4A96B] bg-[#C4A96B] text-white shadow-sm"
-                                      : isAvailable
-                                      ? "border-gray-200 text-[#1A1A1A] hover:border-[#C4A96B] hover:text-[#C4A96B] bg-white"
-                                      : "border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed"
-                                  }
-                                `}
-                                aria-pressed={isSelected}
-                              >
-                                {val}
-                                {/* strike-through line for unavailable */}
-                                {!isAvailable && (
-                                  <span
-                                    aria-hidden="true"
-                                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                                  >
-                                    <span className="w-full h-px bg-gray-200 rotate-[20deg] absolute" />
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={val}
+                                  id={`variant-${key}-${val}`}
+                                  onClick={() => handleAttrSelect(key, val)}
+                                  disabled={!isAvailable}
+                                  className={`
+                                    relative px-4 py-2 text-[10px] uppercase tracking-widest
+                                    border transition-all duration-200 cursor-pointer
+                                    ${
+                                      isSelected
+                                        ? "border-[#C4A96B] bg-[#C4A96B] text-white shadow-sm"
+                                        : isAvailable
+                                        ? "border-gray-200 text-[#1A1A1A] hover:border-[#C4A96B] hover:text-[#C4A96B] bg-white"
+                                        : "border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed"
+                                    }
+                                  `}
+                                  aria-pressed={isSelected}
+                                >
+                                  {val}
+                                  {/* strike-through line for unavailable */}
+                                  {!isAvailable && (
+                                    <span
+                                      aria-hidden="true"
+                                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                    >
+                                      <span className="w-full h-px bg-gray-200 rotate-[20deg] absolute" />
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
 
