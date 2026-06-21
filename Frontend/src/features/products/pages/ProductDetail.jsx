@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
 import HeaderBar from "../components/HeaderBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
@@ -13,7 +12,6 @@ import {
   ChevronImgRight,
   SparkleIcon,
 } from "../components/icons.jsx";
-
 
 /* ─── Skeleton Loader ──────────────────────────────────────────────── */
 const SkeletonDetail = () => (
@@ -45,6 +43,43 @@ const SkeletonDetail = () => (
   </div>
 );
 
+/* ─── helpers ──────────────────────────────────────────────────────── */
+
+/**
+ * Collect every unique attribute key present across all variants.
+ * e.g. ["Color", "Size"]
+ */
+function collectAttrKeys(variants = []) {
+  const keys = new Set();
+  variants.forEach((v) => Object.keys(v.attributes ?? {}).forEach((k) => keys.add(k)));
+  return [...keys];
+}
+
+/**
+ * Given the currently selected attribute map, find the best-matching variant.
+ * "Best" = most attributes that match the selection.
+ */
+/** Split a raw attribute value string on commas and trim each token. */
+function splitAttrValue(raw = "") {
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function findBestVariant(variants = [], selection = {}) {
+  if (!variants.length) return null;
+  let best = null;
+  let bestScore = -1;
+  for (const v of variants) {
+    let score = 0;
+    for (const [key, val] of Object.entries(selection)) {
+      // A variant matches if its attribute value (possibly comma-separated) contains the chosen token
+      const tokens = splitAttrValue(v.attributes?.[key] ?? "");
+      if (tokens.includes(val)) score++;
+    }
+    if (score > bestScore) { bestScore = score; best = v; }
+  }
+  return best;
+}
+
 /* ─── ProductDetail ────────────────────────────────────────────────── */
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -55,6 +90,9 @@ const ProductDetail = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Variant selection: { Color: "Black", Size: "Large" }
+  const [selectedAttrs, setSelectedAttrs] = useState({});
 
   const { handleGetProductById } = useProduct();
 
@@ -67,8 +105,52 @@ const ProductDetail = () => {
     })();
   }, [productId]);
 
-  const images = product?.images ?? [];
+  console.log(product);
+
+  // ── Derive active variant & display values ──────────────────────────
+  const variants     = product?.variants ?? [];
+  const attrKeys     = collectAttrKeys(variants);
+  const hasVariants  = variants.length > 0;
+  const activeVariant = hasVariants ? findBestVariant(variants, selectedAttrs) : null;
+
+  // Images: use variant's if available, else fall back to product's
+  const images =
+    (activeVariant?.images?.length ? activeVariant.images : null) ??
+    product?.images ??
+    [];
+
+  // Price: use variant's if available, else fall back to product's
+  const displayPrice =
+    activeVariant?.price ?? product?.price;
+
+  // Stock from active variant (optional display)
+  const activeStock = activeVariant?.stock ?? null;
+
   const currentImage = images[activeImg]?.url;
+
+  // ── Handler: pick an attribute value (toggle-style) ─────────────────
+  function handleAttrSelect(key, value) {
+    setSelectedAttrs((prev) => {
+      // Clicking the already-selected value deselects it
+      if (prev[key] === value) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      // Otherwise switch to the new value for this key
+      return { ...prev, [key]: value };
+    });
+    setActiveImg(0);
+  }
+
+  // ── Collect unique values per attribute key (comma-split) ────────────
+  function valuesForKey(key) {
+    const seen = new Set();
+    variants.forEach((v) => {
+      splitAttrValue(v.attributes?.[key] ?? "").forEach((token) => seen.add(token));
+    });
+    return [...seen];
+  }
 
   return (
     <div
@@ -302,18 +384,105 @@ const ProductDetail = () => {
                   <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
                     Price
                   </span>
-                  <span
-                    className="text-[#C4A96B] text-3xl font-light font-normal uppercase tracking-wide"
-                    style={{
-                      fontFamily: "'Cormorant Garamond', Georgia, serif",
-                    }}
-                  >
-                    {formatPrice(
-                      product.price?.amount,
-                      product.price?.currency,
+                  <div className="flex items-baseline gap-3">
+                    <span
+                      className="text-[#C4A96B] text-3xl font-light font-normal uppercase tracking-wide transition-all duration-300"
+                      style={{
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      }}
+                    >
+                      {formatPrice(
+                        displayPrice?.amount,
+                        displayPrice?.currency,
+                      )}
+                    </span>
+                    {/* Stock badge */}
+                    {activeStock !== null && (
+                      <span
+                        className={`text-[9px] uppercase tracking-widest px-2 py-0.5 border ${
+                          activeStock > 10
+                            ? "border-emerald-200 text-emerald-600 bg-emerald-50"
+                            : activeStock > 0
+                            ? "border-amber-200 text-amber-600 bg-amber-50"
+                            : "border-red-200 text-red-500 bg-red-50"
+                        }`}
+                      >
+                        {activeStock > 0 ? `${activeStock} in stock` : "Out of stock"}
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </div>
+
+                {/* ── Variant Selector ───────────────────────────────── */}
+                {hasVariants && attrKeys.length > 0 && (
+                  <div className="flex flex-col gap-4">
+                    {attrKeys.map((key) => (
+                      <div key={key} className="flex flex-col gap-2">
+                        {/* Attribute label */}
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+                            {key}
+                          </span>
+                          {selectedAttrs[key] && (
+                            <span className="text-[10px] text-[#C4A96B] font-light tracking-wide">
+                              — {selectedAttrs[key]}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Value chips */}
+                        <div className="flex flex-wrap gap-2">
+                          {valuesForKey(key).map((val) => {
+                            const isSelected = selectedAttrs[key] === val;
+                            // Check if this value exists in at least one variant that also matches other selected attrs
+                            const isAvailable = variants.some((v) => {
+                              // This variant must include `val` in its (comma-split) list for this key
+                              const tokens = splitAttrValue(v.attributes?.[key] ?? "");
+                              if (!tokens.includes(val)) return false;
+                              // Every other already-selected attr must also match (via comma-split)
+                              return Object.entries(selectedAttrs).every(([k, sv]) => {
+                                if (k === key) return true;
+                                return splitAttrValue(v.attributes?.[k] ?? "").includes(sv);
+                              });
+                            });
+
+                            return (
+                              <button
+                                key={val}
+                                id={`variant-${key}-${val}`}
+                                onClick={() => handleAttrSelect(key, val)}
+                                disabled={!isAvailable}
+                                className={`
+                                  relative px-4 py-2 text-[10px] uppercase tracking-widest
+                                  border transition-all duration-200 cursor-pointer
+                                  ${
+                                    isSelected
+                                      ? "border-[#C4A96B] bg-[#C4A96B] text-white shadow-sm"
+                                      : isAvailable
+                                      ? "border-gray-200 text-[#1A1A1A] hover:border-[#C4A96B] hover:text-[#C4A96B] bg-white"
+                                      : "border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed"
+                                  }
+                                `}
+                                aria-pressed={isSelected}
+                              >
+                                {val}
+                                {/* strike-through line for unavailable */}
+                                {!isAvailable && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                  >
+                                    <span className="w-full h-px bg-gray-200 rotate-[20deg] absolute" />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="border-t border-gray-100" />
