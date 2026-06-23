@@ -9,7 +9,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
-} from "../controllers/auth.controllers.js";
+} from "../controllers/auth.controller.js";
 import passport from "passport";
 import { configs } from "../config/config.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";

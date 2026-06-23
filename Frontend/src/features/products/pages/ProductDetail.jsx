@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { useProduct } from "../hook/useProduct";
+import { useProduct } from "../hook/useProduct.js";
+import { useCart } from "../../cart/hook/useCart.js";
 import HeaderBar from "../components/HeaderBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import { formatPrice } from "../utils/formatters.js";
@@ -50,7 +51,12 @@ const SkeletonDetail = () => (
  * Keys are normalised to Title Case so "size", "Size", "SIZE" all merge into "Size".
  */
 function normaliseKey(k = "") {
-  return k.trim().replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  return k
+    .trim()
+    .replace(
+      /\w\S*/g,
+      (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+    );
 }
 
 function collectAttrKeys(variants = []) {
@@ -70,7 +76,10 @@ function collectAttrKeys(variants = []) {
  */
 /** Split a raw attribute value string on commas and trim each token. */
 function splitAttrValue(raw = "") {
-  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /**
@@ -108,11 +117,8 @@ function findBestVariant(variants = [], selection = {}) {
     const variantKeyCount = Object.keys(v.attributes ?? {}).length;
     const keyDiff = Math.abs(variantKeyCount - selectionKeys.length);
 
-    if (
-      score > bestScore ||
-      (score === bestScore && keyDiff < bestKeyDiff)
-    ) {
-      bestScore  = score;
+    if (score > bestScore || (score === bestScore && keyDiff < bestKeyDiff)) {
+      bestScore = score;
       bestKeyDiff = keyDiff;
       best = v;
     }
@@ -135,7 +141,11 @@ const ProductDetail = () => {
   // Variant selection: { Color: "Black", Size: "Large" }
   const [selectedAttrs, setSelectedAttrs] = useState({});
 
+  // Base product attribute selection: { Size: "M", Color: "Black" }
+  const [selectedBaseAttrs, setSelectedBaseAttrs] = useState({});
+
   const { handleGetProductById } = useProduct();
+  const { handleAddItem } = useCart();
 
   useEffect(() => {
     (async () => {
@@ -146,13 +156,29 @@ const ProductDetail = () => {
     })();
   }, [productId]);
 
-  console.log(product);
-
   // ── Derive active variant & display values ──────────────────────────
-  const variants     = product?.variants ?? [];
-  const attrKeys     = collectAttrKeys(variants);
-  const hasVariants  = variants.length > 0;
-  const activeVariant = hasVariants ? findBestVariant(variants, selectedAttrs) : null;
+  const variants = product?.variants ?? [];
+  const attrKeys = collectAttrKeys(variants);
+  const hasVariants = variants.length > 0;
+  const activeVariant = hasVariants
+    ? findBestVariant(variants, selectedAttrs)
+    : null;
+
+  // ── Base product attributes (comma-split into selectable chips) ──────
+  const baseAttrEntries = (() => {
+    const attrs =
+      product?.attributes instanceof Map
+        ? Object.fromEntries(product.attributes)
+        : product?.attributes ?? {};
+    return Object.entries(attrs)
+      .filter(([k, v]) => k && v)
+      .map(([k, v]) => [k, splitAttrValue(v)]); // [key, string[]] pairs
+  })();
+  const hasBaseAttrs = !hasVariants && baseAttrEntries.length > 0;
+  // All base attr keys must have a selection before cart is enabled
+  const baseAttrsComplete =
+    !hasBaseAttrs ||
+    baseAttrEntries.every(([key]) => selectedBaseAttrs[normaliseKey(key)]);
 
   // Images: use variant's if available, else fall back to product's
   const images =
@@ -161,8 +187,7 @@ const ProductDetail = () => {
     [];
 
   // Price: use variant's if available, else fall back to product's
-  const displayPrice =
-    activeVariant?.price ?? product?.price;
+  const displayPrice = activeVariant?.price ?? product?.price;
 
   // Stock from active variant, or fall back to base product stock
   const activeStock = activeVariant?.stock ?? product?.stock ?? null;
@@ -204,11 +229,26 @@ const ProductDetail = () => {
     setActiveImg(0);
   }
 
+  // ── Handler: pick a base-product attribute value (radio-style) ──────
+  function handleBaseAttrSelect(normKey, value) {
+    setSelectedBaseAttrs((prev) => {
+      // Clicking the already-selected value deselects it
+      if (prev[normKey] === value) {
+        const next = { ...prev };
+        delete next[normKey];
+        return next;
+      }
+      return { ...prev, [normKey]: value };
+    });
+  }
+
   // ── Collect unique values per attribute key (comma-split, normalised) ─
   function valuesForKey(key) {
     const seen = new Set();
     variants.forEach((v) => {
-      splitAttrValue(getAttrByNormKey(v, key)).forEach((token) => seen.add(token));
+      splitAttrValue(getAttrByNormKey(v, key)).forEach((token) =>
+        seen.add(token),
+      );
     });
     return [...seen];
   }
@@ -226,6 +266,7 @@ const ProductDetail = () => {
       }),
     );
   }
+  // console.log("prod", product, "actv", activeVariant);
 
   return (
     <div
@@ -376,13 +417,16 @@ const ProductDetail = () => {
                   {images.length > 1 && (
                     <div className="hidden lg:flex flex-col gap-2 overflow-y-auto max-h-[600px]">
                       {images.map((img, idx) => {
-                        const isActive  = activeImg === idx;
+                        const isActive = activeImg === idx;
                         const isHovered = hoveredImg === idx;
                         return (
                           <button
                             key={img._id ?? idx}
                             id={`product-detail-thumb-${idx}`}
-                            onClick={() => { setActiveImg(idx); setHoveredImg(null); }}
+                            onClick={() => {
+                              setActiveImg(idx);
+                              setHoveredImg(null);
+                            }}
                             onMouseEnter={() => setHoveredImg(idx)}
                             onMouseLeave={() => setHoveredImg(null)}
                             className={`
@@ -392,8 +436,8 @@ const ProductDetail = () => {
                                 isActive
                                   ? "border-[#C4A96B] ring-1 ring-[#C4A96B]/40"
                                   : isHovered
-                                  ? "border-[#C4A96B]/70 ring-1 ring-[#C4A96B]/20 scale-105"
-                                  : "border-gray-100"
+                                    ? "border-[#C4A96B]/70 ring-1 ring-[#C4A96B]/20 scale-105"
+                                    : "border-gray-100"
                               }
                             `}
                             aria-label={`View image ${idx + 1}`}
@@ -451,7 +495,9 @@ const ProductDetail = () => {
                 {/* Title */}
                 <h1
                   className="text-4xl md:text-5xl font-light text-[#1A1A1A] leading-tight tracking-wide"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{
+                    fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  }}
                 >
                   {product.title}
                 </h1>
@@ -463,6 +509,59 @@ const ProductDetail = () => {
                 <p className="text-[#9A9A9A] text-sm leading-relaxed">
                   {product.description || "No description provided."}
                 </p>
+
+                {/* ── Base Product Attributes (selectable chips) ──────── */}
+                {hasBaseAttrs && (
+                  <div className="flex flex-col gap-4">
+                    {baseAttrEntries.map(([key, tokens]) => {
+                      const normKey = normaliseKey(key);
+                      const selected = selectedBaseAttrs[normKey];
+                      return (
+                        <div key={key} className="flex flex-col gap-2">
+                          {/* Label row */}
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+                              {normKey}
+                            </span>
+                            {selected && (
+                              <span className="text-[10px] text-[#C4A96B] font-light tracking-wide">
+                                — {selected}
+                              </span>
+                            )}
+                          </div>
+                          {/* One chip per comma-token */}
+                          <div className="flex flex-wrap gap-2">
+                            {tokens.map((val) => {
+                              const isSelected = selected === val;
+                              return (
+                                <button
+                                  key={val}
+                                  id={`base-attr-${normKey}-${val}`}
+                                  type="button"
+                                  onClick={() =>
+                                    handleBaseAttrSelect(normKey, val)
+                                  }
+                                  className={`
+                                    px-4 py-2 text-[10px] uppercase tracking-widest
+                                    border transition-all duration-200 cursor-pointer
+                                    ${
+                                      isSelected
+                                        ? "border-[#C4A96B] bg-[#C4A96B] text-white shadow-sm"
+                                        : "border-gray-200 text-[#1A1A1A] bg-white hover:border-[#C4A96B] hover:text-[#C4A96B]"
+                                    }
+                                  `}
+                                  aria-pressed={isSelected}
+                                >
+                                  {val}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Price */}
                 <div className="flex flex-col gap-1">
@@ -488,11 +587,13 @@ const ProductDetail = () => {
                           activeStock > 10
                             ? "border-emerald-200 text-emerald-600 bg-emerald-50"
                             : activeStock > 0
-                            ? "border-amber-200 text-amber-600 bg-amber-50"
-                            : "border-red-200 text-red-500 bg-red-50"
+                              ? "border-amber-200 text-amber-600 bg-amber-50"
+                              : "border-red-200 text-red-500 bg-red-50"
                         }`}
                       >
-                        {activeStock > 0 ? `${activeStock} in stock` : "Out of stock"}
+                        {activeStock > 0
+                          ? `${activeStock} in stock`
+                          : "Out of stock"}
                       </span>
                     )}
                   </div>
@@ -523,12 +624,18 @@ const ProductDetail = () => {
                               const isSelected = selectedAttrs[key] === val;
                               // Available if at least one variant has this val AND matches all other selected attrs
                               const isAvailable = variants.some((v) => {
-                                const tokens = splitAttrValue(getAttrByNormKey(v, key));
+                                const tokens = splitAttrValue(
+                                  getAttrByNormKey(v, key),
+                                );
                                 if (!tokens.includes(val)) return false;
-                                return Object.entries(selectedAttrs).every(([k, sv]) => {
-                                  if (k === key) return true;
-                                  return splitAttrValue(getAttrByNormKey(v, k)).includes(sv);
-                                });
+                                return Object.entries(selectedAttrs).every(
+                                  ([k, sv]) => {
+                                    if (k === key) return true;
+                                    return splitAttrValue(
+                                      getAttrByNormKey(v, k),
+                                    ).includes(sv);
+                                  },
+                                );
                               });
 
                               return (
@@ -544,8 +651,8 @@ const ProductDetail = () => {
                                       isSelected
                                         ? "border-[#C4A96B] bg-[#C4A96B] text-white shadow-sm"
                                         : isAvailable
-                                        ? "border-gray-200 text-[#1A1A1A] hover:border-[#C4A96B] hover:text-[#C4A96B] bg-white"
-                                        : "border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed"
+                                          ? "border-gray-200 text-[#1A1A1A] hover:border-[#C4A96B] hover:text-[#C4A96B] bg-white"
+                                          : "border-gray-100 text-gray-300 bg-gray-50 cursor-not-allowed"
                                     }
                                   `}
                                   aria-pressed={isSelected}
@@ -584,6 +691,17 @@ const ProductDetail = () => {
                       hover:bg-[#C4A96B] hover:text-white
                       transition-all duration-200 flex-1 sm:flex-none sm:min-w-[160px]
                     "
+                    disabled={
+                      (hasVariants && !activeVariant) ||
+                      !baseAttrsComplete
+                    }
+                    onClick={() => {
+                      handleAddItem({
+                        productId: product._id,
+                        variantId: activeVariant?._id,
+                        ...(hasBaseAttrs && { selectedAttributes: selectedBaseAttrs }),
+                      });
+                    }}
                   >
                     <CartIcon />
                     Add to Cart
@@ -715,7 +833,9 @@ const ProductDetail = () => {
           </span>
           <span
             className="text-[#C4A96B] font-light text-lg tracking-wide"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+            }}
           >
             Elevate
           </span>

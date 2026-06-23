@@ -1,7 +1,8 @@
 import express from "express";
 import morgan from "morgan";
 import authRouter from "./routes/auth.routes.js";
-import productRouter from "./routes/product.route.js"
+import productRouter from "./routes/product.route.js";
+import cartRouter from "./routes/cart.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { configs } from "./config/config.js";
@@ -45,7 +46,8 @@ app.get("/", (req, res) => {
 
 // Routes - Axios ka baseURL + vite ki proxy ke saath aaygi frontend se backend pe
 app.use("/api/auth", authRouter);
-app.use("/api/products", productRouter)
+app.use("/api/products", productRouter);
+app.use("/api/cart", cartRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

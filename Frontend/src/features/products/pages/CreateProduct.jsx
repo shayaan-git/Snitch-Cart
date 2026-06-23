@@ -28,7 +28,22 @@ const CreateProduct = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  /* attributes state: array of { key, value } pairs */
+  const [attributes, setAttributes] = useState([{ key: "", value: "" }]);
+
   const fileInputRef = useRef(null);
+
+  /* ── attribute helpers ── */
+  const addAttribute = () =>
+    setAttributes((prev) => [...prev, { key: "", value: "" }]);
+
+  const removeAttribute = (idx) =>
+    setAttributes((prev) => prev.filter((_, i) => i !== idx));
+
+  const updateAttribute = (idx, field, val) =>
+    setAttributes((prev) =>
+      prev.map((attr, i) => (i === idx ? { ...attr, [field]: val } : attr)),
+    );
 
   /* ── image helpers ── */
   const addFiles = useCallback(
@@ -78,6 +93,15 @@ const CreateProduct = () => {
       formData.append("priceAmount", priceAmount);
       formData.append("priceCurrency", priceCurrency);
       images.forEach(({ file }) => formData.append("images", file));
+
+      // Build attributes object from key-value pairs, skipping empty keys
+      const attributesObj = attributes.reduce((acc, { key, value }) => {
+        const trimmedKey = key.trim();
+        if (trimmedKey) acc[trimmedKey] = value.trim();
+        return acc;
+      }, {});
+      formData.append("attributes", JSON.stringify(attributesObj));
+
       console.log(
         images.length,
         images.map((i) => i.file),
@@ -285,6 +309,116 @@ const CreateProduct = () => {
                     </div>
                     <p className="text-[11px] text-gray-400 uppercase tracking-widest">
                       Set a competitive price for your market.
+                    </p>
+                  </div>
+
+                  {/* ── Attributes ── */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-normal uppercase tracking-widest text-gray-500">
+                        Attributes
+                      </label>
+                      <button
+                        type="button"
+                        id="add-attribute-btn"
+                        onClick={addAttribute}
+                        className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-[#C4A96B] hover:text-[#a8894e] transition-colors duration-200 cursor-pointer"
+                      >
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 10 10"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="shrink-0"
+                        >
+                          <path
+                            d="M5 1v8M1 5h8"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        Add
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      {attributes.map((attr, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 group"
+                        >
+                          {/* Key */}
+                          <input
+                            id={`attr-key-${idx}`}
+                            type="text"
+                            value={attr.key}
+                            onChange={(e) =>
+                              updateAttribute(idx, "key", e.target.value)
+                            }
+                            placeholder="e.g. Color"
+                            className="
+                              w-2/5 py-1.5
+                              bg-transparent border-0 border-b border-gray-200
+                              text-[#1A1A1A] text-xs
+                              placeholder:text-gray-300
+                              outline-none transition-colors duration-200
+                              focus:border-gray-700
+                            "
+                          />
+                          {/* Divider */}
+                          <span className="text-gray-300 text-xs shrink-0">
+                            —
+                          </span>
+                          {/* Value */}
+                          <input
+                            id={`attr-value-${idx}`}
+                            type="text"
+                            value={attr.value}
+                            onChange={(e) =>
+                              updateAttribute(idx, "value", e.target.value)
+                            }
+                            placeholder="e.g. Midnight Black"
+                            className="
+                              flex-1 py-1.5
+                              bg-transparent border-0 border-b border-gray-200
+                              text-[#1A1A1A] text-xs
+                              placeholder:text-gray-300
+                              outline-none transition-colors duration-200
+                              focus:border-gray-700
+                            "
+                          />
+                          {/* Remove */}
+                          {attributes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeAttribute(idx)}
+                              aria-label="Remove attribute"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-300 hover:text-red-400 shrink-0 cursor-pointer"
+                            >
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1 1l10 10M11 1L1 11"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-[11px] text-gray-400 uppercase tracking-widest">
+                      Add key details like material, color, or origin.
                     </p>
                   </div>
                 </div>
