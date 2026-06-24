@@ -6,6 +6,7 @@ export async function createProduct(req, res) {
   const seller = req.user;
 
   const attributes = JSON.parse(req.body.attributes || "{}");
+  const stock = req.body.stock ? Number(req.body.stock) : undefined;
 
   const images = await Promise.all(
     req.files.map(async (file) => {
@@ -20,6 +21,7 @@ export async function createProduct(req, res) {
     title,
     description,
     attributes,
+    ...(stock !== undefined && { stock }),
     price: {
       amount: priceAmount,
       currency: priceCurrency || "INR",
@@ -110,8 +112,6 @@ export async function addProductVariant(req, res) {
   const price = req.body.priceAmount;
   const stock = req.body.stock;
   const attributes = JSON.parse(req.body.attributes || "{}");
-
-//   console.log(product, images, price, stock, attributes);
 
   product.variants.push({
     images,

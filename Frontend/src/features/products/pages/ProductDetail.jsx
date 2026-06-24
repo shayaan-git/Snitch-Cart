@@ -144,6 +144,12 @@ const ProductDetail = () => {
   // Base product attribute selection: { Size: "M", Color: "Black" }
   const [selectedBaseAttrs, setSelectedBaseAttrs] = useState({});
 
+  const [oosSnackbar, setOosSnackbar] = useState(false);
+  const [oosSnackbarIn, setOosSnackbarIn] = useState(false);
+
+  const [successSnackbar, setSuccessSnackbar] = useState(false);
+  const [successSnackbarIn, setSuccessSnackbarIn] = useState(false);
+
   const { handleGetProductById } = useProduct();
   const { handleAddItem } = useCart();
 
@@ -155,6 +161,38 @@ const ProductDetail = () => {
       setLoading(false);
     })();
   }, [productId]);
+
+  // Auto-dismiss OOS snackbar
+  useEffect(() => {
+    let timeoutId;
+    if (oosSnackbar) {
+      // Trigger entrance animation next frame
+      requestAnimationFrame(() => setOosSnackbarIn(true));
+      
+      // Auto-hide after 4 seconds
+      timeoutId = setTimeout(() => {
+        setOosSnackbarIn(false);
+        setTimeout(() => setOosSnackbar(false), 300); // Wait for exit animation
+      }, 2000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [oosSnackbar]);
+
+  // Auto-dismiss Success snackbar
+  useEffect(() => {
+    let timeoutId;
+    if (successSnackbar) {
+      // Trigger entrance animation next frame
+      requestAnimationFrame(() => setSuccessSnackbarIn(true));
+      
+      // Auto-hide after 4 seconds
+      timeoutId = setTimeout(() => {
+        setSuccessSnackbarIn(false);
+        setTimeout(() => setSuccessSnackbar(false), 300); // Wait for exit animation
+      }, 2000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [successSnackbar]);
 
   // ── Derive active variant & display values ──────────────────────────
   const variants = product?.variants ?? [];
@@ -174,11 +212,16 @@ const ProductDetail = () => {
       .filter(([k, v]) => k && v)
       .map(([k, v]) => [k, splitAttrValue(v)]); // [key, string[]] pairs
   })();
-  const hasBaseAttrs = !hasVariants && baseAttrEntries.length > 0;
-  // All base attr keys must have a selection before cart is enabled
-  const baseAttrsComplete =
-    !hasBaseAttrs ||
-    baseAttrEntries.every(([key]) => selectedBaseAttrs[normaliseKey(key)]);
+  // Show base attrs whenever the product has them — independent of variants
+  const hasBaseAttrs = baseAttrEntries.length > 0;
+
+  // Add to Cart enabled as soon as the buyer picks ANY selection —
+  // either a base attr chip or a variant attr chip (OR, not AND)
+  const anyAttrSelected =
+    Object.keys(selectedBaseAttrs).length > 0 || activeVariant !== null;
+  // If the product has no selectable attrs at all, allow adding freely
+  const canAddToCart =
+    (!hasBaseAttrs && !hasVariants) || anyAttrSelected;
 
   // Images: use variant's if available, else fall back to product's
   const images =
@@ -191,6 +234,8 @@ const ProductDetail = () => {
 
   // Stock from active variant, or fall back to base product stock
   const activeStock = activeVariant?.stock ?? product?.stock ?? null;
+  // Out of stock when stock is explicitly 0 (null = not tracked → not blocked)
+  const isOutOfStock = activeStock !== null && activeStock <= 0;
 
   // Show hovered thumbnail as preview, fall back to the committed active image
   const currentImage = images[hoveredImg ?? activeImg]?.url;
@@ -209,11 +254,8 @@ const ProductDetail = () => {
       const next = { ...prev, [key]: value };
 
       // ── Auto-clear incompatible sibling selections ──────────────
-      // For every OTHER selected key, check whether its currently-selected
-      // value can still be found in at least one variant that also matches
-      // the newly chosen key=value.  If not, drop it so the UI stays clean.
       Object.keys(next).forEach((k) => {
-        if (k === key) return; // skip the key we just set
+        if (k === key) return;
         const sv = next[k];
         const compatible = variants.some((v) => {
           const kTokens = splitAttrValue(getAttrByNormKey(v, k));
@@ -226,6 +268,8 @@ const ProductDetail = () => {
 
       return next;
     });
+    // Selecting a variant attr clears any base-product attr selection
+    setSelectedBaseAttrs({});
     setActiveImg(0);
   }
 
@@ -240,6 +284,8 @@ const ProductDetail = () => {
       }
       return { ...prev, [normKey]: value };
     });
+    // Selecting a base attr clears any variant attr selection
+    setSelectedAttrs({});
   }
 
   // ── Collect unique values per attribute key (comma-split, normalised) ─
@@ -513,6 +559,12 @@ const ProductDetail = () => {
                 {/* ── Base Product Attributes (selectable chips) ──────── */}
                 {hasBaseAttrs && (
                   <div className="flex flex-col gap-4">
+                    {/* Section label only shown when variants also exist */}
+                    {hasVariants && (
+                      <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A] border-b border-gray-100 pb-2">
+                        Product Attributes
+                      </span>
+                    )}
                     {baseAttrEntries.map(([key, tokens]) => {
                       const normKey = normaliseKey(key);
                       const selected = selectedBaseAttrs[normKey];
@@ -599,9 +651,15 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* ── Variant Selector ───────────────────────────────── */}
+                {/* ── Variant Selector ─────────────────────────────────── */}
                 {hasVariants && attrKeys.length > 0 && (
                   <div className="flex flex-col gap-4">
+                    {/* Section label only shown when base attrs also exist */}
+                    {hasBaseAttrs && (
+                      <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A] border-b border-gray-100 pb-2">
+                        Variant Options
+                      </span>
+                    )}
                     {attrKeys
                       .filter((key) => hasAvailableValues(key))
                       .map((key) => (
@@ -684,27 +742,34 @@ const ProductDetail = () => {
                   {/* Add to Cart */}
                   <button
                     id="product-detail-add-to-cart"
-                    className="
+                    className={`
                       flex items-center justify-center gap-2 px-8 py-3
-                      border border-[#C4A96B] text-[#C4A96B] cursor-pointer
+                      ${isOutOfStock
+                        ? "border border-red-300 text-red-400"
+                        : "border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white"
+                      }
                       text-[10px] font-normal uppercase tracking-widest
-                      hover:bg-[#C4A96B] hover:text-white
                       transition-all duration-200 flex-1 sm:flex-none sm:min-w-[160px]
-                    "
-                    disabled={
-                      (hasVariants && !activeVariant) ||
-                      !baseAttrsComplete
-                    }
-                    onClick={() => {
-                      handleAddItem({
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      ${isOutOfStock ? "disabled:hover:bg-transparent disabled:hover:text-red-400" : "disabled:hover:bg-transparent disabled:hover:text-[#C4A96B]"}
+                      cursor-pointer
+                    `}
+                    disabled={!canAddToCart}
+                    onClick={async () => {
+                      if (isOutOfStock) {
+                        setOosSnackbar(true);
+                        return;
+                      }
+                      await handleAddItem({
                         productId: product._id,
                         variantId: activeVariant?._id,
                         ...(hasBaseAttrs && { selectedAttributes: selectedBaseAttrs }),
                       });
+                      setSuccessSnackbar(true);
                     }}
                   >
                     <CartIcon />
-                    Add to Cart
+                    {isOutOfStock ? "Out of Stock" : "Add to Cart"}
                   </button>
 
                   {/* Buy Now */}
@@ -722,6 +787,8 @@ const ProductDetail = () => {
                     Buy Now
                   </button>
                 </div>
+
+                {/* Removed inline warning banner in favor of snackbar */}
 
                 {/* Meta */}
                 <div className="pt-2 flex flex-col gap-3 text-[10px] uppercase tracking-widest text-[#9A9A9A]">
@@ -841,6 +908,103 @@ const ProductDetail = () => {
           </span>
         </footer>
       </div>
+
+    <style>{`
+      @keyframes shrink {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+    `}</style>
+
+      {/* ── Snackbar ────────────────────────────────────────────────── */}
+      {oosSnackbar && (
+        <div
+          className={`
+            fixed top-4 right-4 z-50 overflow-hidden
+            flex items-start gap-3 px-5 py-4
+            bg-[#1A1A1A] text-white border border-red-400/30
+            shadow-xl max-w-[320px]
+            transition-all duration-300 ease-out
+            ${oosSnackbarIn ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}
+          `}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            className="flex-shrink-0 mt-0.5 text-red-400"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
+          </svg>
+          <div className="flex flex-col gap-1">
+            <p className="text-[11px] uppercase tracking-widest leading-relaxed">
+              This item is currently <span className="text-red-400">out of stock</span>.
+            </p>
+            <p className="text-[10px] text-gray-400 tracking-wide">
+              Please wait for a stock update or add it to your wishlist.
+            </p>
+          </div>
+          {/* Auto-dismiss progress bar */}
+          <div 
+            className="absolute bottom-0 left-0 h-1 bg-red-500" 
+            style={{
+              width: "100%",
+              animation: oosSnackbarIn ? "shrink 2s linear forwards" : "none"
+            }}
+          />
+        </div>
+      )}
+
+      {/* ── Success Snackbar ──────────────────────────────────────────────── */}
+      {successSnackbar && (
+        <div
+          className={`
+            fixed top-4 right-4 z-50 overflow-hidden
+            flex items-start gap-3 px-5 py-4
+            bg-[#1A1A1A] text-white border border-emerald-400/30
+            shadow-xl max-w-[320px]
+            transition-all duration-300 ease-out
+            ${successSnackbarIn ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}
+          `}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            className="flex-shrink-0 mt-0.5 text-emerald-400"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="flex flex-col gap-1">
+            <p className="text-[11px] uppercase tracking-widest leading-relaxed">
+              Item added to your cart
+            </p>
+            <p className="text-[10px] text-gray-400 tracking-wide">
+              Check your cart to proceed with checkout.
+            </p>
+          </div>
+          {/* Auto-dismiss progress bar */}
+          <div 
+            className="absolute bottom-0 left-0 h-1 bg-emerald-500" 
+            style={{
+              width: "100%",
+              animation: successSnackbarIn ? "shrink 2s linear forwards" : "none"
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

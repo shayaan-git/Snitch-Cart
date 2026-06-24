@@ -6,11 +6,6 @@ export const addToCart = async (req, res) => {
    const { productId, variantId } = req.params;
    const { quantity = 1 } = req.body;
 
-   //   const product = await productModel.findOne({
-   //     _id: productId,
-   //     "variants._id": variantId,
-   //   });
-
    const product = await productModel.findOne(
       variantId
          ? { _id: productId, "variants._id": variantId }
@@ -24,7 +19,6 @@ export const addToCart = async (req, res) => {
       });
    }
 
-   // const stock = await stockOfVariant(productId, variantId);
    const stock = variantId
       ? await stockOfVariant(productId, variantId)
       : product.stock; // adjust to your field name
@@ -33,23 +27,13 @@ export const addToCart = async (req, res) => {
       (await cartModel.findOne({ user: req.user._id })) ||
       (await cartModel.create({ user: req.user._id }));
 
-   const existingItem = cart.items.some(
+   const existingItem = cart.items.find(
       (item) =>
          item.product.toString() === productId &&
-         // item.variant?.toString() === variantId,
-         (variantId ? item.variant?.toString() === variantId : !item.variant), // base product: no variant stored
+         (variantId ? item.variant?.toString() === variantId : !item.variant),
    );
 
    if (existingItem) {
-      // const quantityInCart = cart.items.find(
-      //     (item) =>
-      //         item.product.toString() === productId &&
-      //         // item.variant.toString() === variantId,
-      //         (variantId
-      //             ? item.variant?.toString() === variantId
-      //             : !item.variant),
-      // );
-
       if (existingItem.quantity + quantity > stock) {
          return res.status(400).json({
             message: `Only ${stock - existingItem.quantity} items left in stock, you already have ${existingItem.quantity} in your cart`,
@@ -57,26 +41,19 @@ export const addToCart = async (req, res) => {
          });
       }
 
-      // 4. Update query — different filter when no variantId
-      const updateFilter = variantId
-         ? { user: req.user._id, "items.product": productId, "items.variant": variantId }
-         : { user: req.user._id, "items.product": productId, "items.variant": { $exists: false } };
-
-      // await cartModel.findOneAndUpdate(
-      //    {
-      //       user: req.user._id,
-      //       "items.product": productId,
-      //       "items.variant": variantId,
-      //    },
-      //    { $inc: { "items.$.quantity": quantity } },
-      //    { new: true },
-      // );
-
+      // Use arrayFilters + $[elem] — works for both variant and base-product items
+      // (the positional $ operator requires the filter condition to be in the query,
+      //  which is unreliable when the variant field may be absent)
       await cartModel.findOneAndUpdate(
-      updateFilter,
-      { $inc: { "items.$.quantity": quantity } },
-      { new: true },
-    );
+         { user: req.user._id },
+         { $inc: { "items.$[elem].quantity": quantity } },
+         {
+            arrayFilters: variantId
+               ? [{ "elem.product": productId, "elem.variant": variantId }]
+               : [{ "elem.product": productId, "elem.variant": { $exists: false } }],
+            new: true,
+         },
+      );
 
       return res.status(200).json({
          message: "Cart updated successfully",
@@ -100,7 +77,6 @@ export const addToCart = async (req, res) => {
    cart.items.push({
       product: productId,
       ...(variantId && { variant: variantId }),
-      // variant: variantId,
       quantity,
       price
    });

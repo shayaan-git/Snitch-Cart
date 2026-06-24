@@ -31,6 +31,9 @@ const CreateProduct = () => {
   /* attributes state: array of { key, value } pairs */
   const [attributes, setAttributes] = useState([{ key: "", value: "" }]);
 
+  /* base product stock */
+  const [stock, setStock] = useState("");
+
   const fileInputRef = useRef(null);
 
   /* ── attribute helpers ── */
@@ -101,6 +104,7 @@ const CreateProduct = () => {
         return acc;
       }, {});
       formData.append("attributes", JSON.stringify(attributesObj));
+      if (stock !== "") formData.append("stock", stock);
 
       console.log(
         images.length,
@@ -309,6 +313,39 @@ const CreateProduct = () => {
                     </div>
                     <p className="text-[11px] text-gray-400 uppercase tracking-widest">
                       Set a competitive price for your market.
+                    </p>
+                  </div>
+
+                  {/* ── Stock ── */}
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="product-stock"
+                      className="text-[10px] font-normal uppercase tracking-widest text-gray-500"
+                    >
+                      Stock
+                    </label>
+                    <input
+                      id="product-stock"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value)}
+                      placeholder="e.g. 50"
+                      className="
+                        w-full py-2
+                        bg-transparent border-0 border-b border-gray-300
+                        text-[#1A1A1A] text-sm
+                        placeholder:text-gray-300
+                        outline-none transition-colors duration-200
+                        focus:border-gray-800
+                        [appearance:textfield]
+                        [&::-webkit-outer-spin-button]:appearance-none
+                        [&::-webkit-inner-spin-button]:appearance-none
+                      "
+                    />
+                    <p className="text-[11px] text-gray-400 uppercase tracking-widest">
+                      Available units for this product.
                     </p>
                   </div>
 
