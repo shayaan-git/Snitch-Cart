@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct";
 import { SearchIcon, SparkleIcon, BoxIcon } from "../components/icons.jsx";
-import HeaderBar from "../components/HeaderBar.jsx";
+import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import SkeletonCard from "../components/SkeletonCard.jsx";
 import BuyerProductCard from "../components/BuyerProductCard.jsx";
@@ -15,7 +16,7 @@ const Homepage = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   useEffect(() => {
     (async () => {
@@ -46,7 +47,7 @@ const Homepage = () => {
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
-        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         {/* ── Hero Banner ─────────────────────────────────────────── */}
         <section className="w-full px-10 py-16 border-b border-gray-100 bg-white">
@@ -62,7 +63,8 @@ const Homepage = () => {
               Discover Premium Products
             </h1>
             <p className="text-[#9A9A9A] text-sm leading-relaxed max-w-lg mb-8">
-              Explore our curated collection of high-quality items, handpicked just for you.
+              Explore our curated collection of high-quality items, handpicked
+              just for you.
             </p>
             {/* Search bar */}
             <div className="relative flex items-center max-w-sm">

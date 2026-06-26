@@ -12,7 +12,11 @@ import {
 
 const navLinks = [
   { label: "Dashboard", href: "/seller/dashboard", icon: <DashboardNavIcon /> },
-  { label: "Create Product", href: "/seller/create-product", icon: <CreateNavIcon /> },
+  {
+    label: "Create Product",
+    href: "/seller/create-product",
+    icon: <CreateNavIcon />,
+  },
   { label: "Store", href: "/", icon: <StoreNavIcon /> },
 ];
 
@@ -39,7 +43,7 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
           {!collapsed && (
             <span
               className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
             >
               Elevate
             </span>
@@ -70,7 +74,9 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
               >
                 {link.icon}
                 {!collapsed && (
-                  <span className="uppercase tracking-widest text-xs">{link.label}</span>
+                  <span className="uppercase tracking-widest text-xs">
+                    {link.label}
+                  </span>
                 )}
               </Link>
             );
@@ -161,7 +167,9 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
                 `}
               >
                 {link.icon}
-                <span className="uppercase tracking-widest text-xs">{link.label}</span>
+                <span className="uppercase tracking-widest text-xs">
+                  {link.label}
+                </span>
               </Link>
             );
           })}
@@ -201,4 +209,3 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
 };
 
 export default SellerSidebar;
-

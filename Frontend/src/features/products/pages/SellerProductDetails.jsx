@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct";
-import HeaderBar from "../components/HeaderBar";
+import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import SellerSidebar from "../components/SellerSidebar";
 import { formatPrice, formatDate } from "../utils/formatters";
 import {
@@ -462,7 +462,7 @@ const SellerProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
   const [saving, setSaving] = useState(false);
 
   /* variant state — lives locally until backend is wired */
@@ -500,8 +500,10 @@ const SellerProductDetails = () => {
         try {
           const result = await handleAddProductVariant(productId, variantData);
           // Backend returns the full updated product; sync all variants from it
-          const updatedVariants =
-            result?.product?.variants ?? [...variants, variantData];
+          const updatedVariants = result?.product?.variants ?? [
+            ...variants,
+            variantData,
+          ];
           setVariants(updatedVariants);
           setModalOpen(false);
           setEditingIdx(null);
@@ -551,7 +553,7 @@ const SellerProductDetails = () => {
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Header ──────────────────────────────────────────────── */}
-        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         <main className="flex-grow px-6 sm:px-10 py-10 flex flex-col gap-12 overflow-y-auto">
           {/* ── Breadcrumb / Back ─────────────────────────────────── */}

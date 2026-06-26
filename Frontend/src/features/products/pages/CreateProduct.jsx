@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
-import HeaderBar from "../components/HeaderBar";
+import HeaderBar from "../../shared/components/HeaderBar";
 import SellerSidebar from "../components/SellerSidebar";
 import { CameraIcon, PlusIcon, SpinnerIcon, XIcon } from "../components/icons";
 
@@ -26,7 +26,7 @@ const CreateProduct = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   /* attributes state: array of { key, value } pairs */
   const [attributes, setAttributes] = useState([{ key: "", value: "" }]);
@@ -142,7 +142,7 @@ const CreateProduct = () => {
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
-        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         <main className="flex-grow flex items-start justify-center px-10 py-12 overflow-y-auto">
           <div className="w-full max-w-[1100px] flex flex-col gap-8">

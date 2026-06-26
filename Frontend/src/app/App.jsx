@@ -16,6 +16,10 @@ function App() {
     handleGetMe();
   }, []);
 
+  /**
+   * Ye pattern "Persistent Login" kehlaata hai — user ko baar baar login nahi karna padta, browser band karke khola toh bhi session yaad rehta hai (cookie/token ki wajah se).
+   */
+
   return (
     <>
       <RouterProvider router={routes} />

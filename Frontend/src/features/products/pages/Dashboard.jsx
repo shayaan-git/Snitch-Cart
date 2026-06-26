@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct.js";
 import { formatPrice } from "../utils/formatters.js";
 import {
@@ -10,7 +10,7 @@ import {
   BoxIcon,
   RefreshIcon,
 } from "../components/icons.jsx";
-import HeaderBar from "../components/HeaderBar.jsx";
+import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import SellerSidebar from "../components/SellerSidebar.jsx";
 import SkeletonCard from "../components/SkeletonCard.jsx";
 import SellerProductCard from "../components/SellerProductCard.jsx";
@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date-desc");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   useEffect(() => {
     handleGetSellerProduct();
@@ -71,7 +71,7 @@ const Dashboard = () => {
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
-        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         {/* ── Main ─────────────────────────────────────────────────── */}
         <main className="flex-grow px-10 py-12 flex flex-col gap-8 overflow-y-auto">
@@ -245,7 +245,8 @@ const Dashboard = () => {
                   No products listed yet
                 </h2>
                 <p className="text-[#9A9A9A] text-xs uppercase tracking-widest max-w-xs">
-                  Start building your collection by adding your first luxury item.
+                  Start building your collection by adding your first luxury
+                  item.
                 </p>
               </div>
               <button

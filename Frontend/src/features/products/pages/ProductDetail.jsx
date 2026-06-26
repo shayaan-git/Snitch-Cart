@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct.js";
 import { useCart } from "../../cart/hook/useCart.js";
-import HeaderBar from "../components/HeaderBar.jsx";
+import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import { formatPrice } from "../utils/formatters.js";
 import {
@@ -136,7 +136,7 @@ const ProductDetail = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [hoveredImg, setHoveredImg] = useState(null); // preview on hover without committing
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   // Variant selection: { Color: "Black", Size: "Large" }
   const [selectedAttrs, setSelectedAttrs] = useState({});
@@ -168,7 +168,7 @@ const ProductDetail = () => {
     if (oosSnackbar) {
       // Trigger entrance animation next frame
       requestAnimationFrame(() => setOosSnackbarIn(true));
-      
+
       // Auto-hide after 4 seconds
       timeoutId = setTimeout(() => {
         setOosSnackbarIn(false);
@@ -184,7 +184,7 @@ const ProductDetail = () => {
     if (successSnackbar) {
       // Trigger entrance animation next frame
       requestAnimationFrame(() => setSuccessSnackbarIn(true));
-      
+
       // Auto-hide after 4 seconds
       timeoutId = setTimeout(() => {
         setSuccessSnackbarIn(false);
@@ -207,7 +207,7 @@ const ProductDetail = () => {
     const attrs =
       product?.attributes instanceof Map
         ? Object.fromEntries(product.attributes)
-        : product?.attributes ?? {};
+        : (product?.attributes ?? {});
     return Object.entries(attrs)
       .filter(([k, v]) => k && v)
       .map(([k, v]) => [k, splitAttrValue(v)]); // [key, string[]] pairs
@@ -220,8 +220,7 @@ const ProductDetail = () => {
   const anyAttrSelected =
     Object.keys(selectedBaseAttrs).length > 0 || activeVariant !== null;
   // If the product has no selectable attrs at all, allow adding freely
-  const canAddToCart =
-    (!hasBaseAttrs && !hasVariants) || anyAttrSelected;
+  const canAddToCart = (!hasBaseAttrs && !hasVariants) || anyAttrSelected;
 
   // Images: use variant's if available, else fall back to product's
   const images =
@@ -330,7 +329,7 @@ const ProductDetail = () => {
       {/* ── Page Content ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* ── Header ────────────────────────────────────────────────── */}
-        <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         {/* ── Breadcrumb / Back ────────────────────────────────────── */}
         <div className="px-10 pt-8 pb-2 flex items-center gap-2 text-xs uppercase tracking-widest text-[#9A9A9A]">
@@ -744,9 +743,10 @@ const ProductDetail = () => {
                     id="product-detail-add-to-cart"
                     className={`
                       flex items-center justify-center gap-2 px-8 py-3
-                      ${isOutOfStock
-                        ? "border border-red-300 text-red-400"
-                        : "border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white"
+                      ${
+                        isOutOfStock
+                          ? "border border-red-300 text-red-400"
+                          : "border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white"
                       }
                       text-[10px] font-normal uppercase tracking-widest
                       transition-all duration-200 flex-1 sm:flex-none sm:min-w-[160px]
@@ -763,7 +763,9 @@ const ProductDetail = () => {
                       await handleAddItem({
                         productId: product._id,
                         variantId: activeVariant?._id,
-                        ...(hasBaseAttrs && { selectedAttributes: selectedBaseAttrs }),
+                        ...(hasBaseAttrs && {
+                          selectedAttributes: selectedBaseAttrs,
+                        }),
                       });
                       setSuccessSnackbar(true);
                     }}
@@ -909,7 +911,7 @@ const ProductDetail = () => {
         </footer>
       </div>
 
-    <style>{`
+      <style>{`
       @keyframes shrink {
         from { width: 100%; }
         to { width: 0%; }
@@ -946,18 +948,19 @@ const ProductDetail = () => {
           </svg>
           <div className="flex flex-col gap-1">
             <p className="text-[11px] uppercase tracking-widest leading-relaxed">
-              This item is currently <span className="text-red-400">out of stock</span>.
+              This item is currently{" "}
+              <span className="text-red-400">out of stock</span>.
             </p>
             <p className="text-[10px] text-gray-400 tracking-wide">
               Please wait for a stock update or add it to your wishlist.
             </p>
           </div>
           {/* Auto-dismiss progress bar */}
-          <div 
-            className="absolute bottom-0 left-0 h-1 bg-red-500" 
+          <div
+            className="absolute bottom-0 left-0 h-1 bg-red-500"
             style={{
               width: "100%",
-              animation: oosSnackbarIn ? "shrink 2s linear forwards" : "none"
+              animation: oosSnackbarIn ? "shrink 2s linear forwards" : "none",
             }}
           />
         </div>
@@ -985,7 +988,11 @@ const ProductDetail = () => {
             strokeWidth={1.5}
             className="flex-shrink-0 mt-0.5 text-emerald-400"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div className="flex flex-col gap-1">
             <p className="text-[11px] uppercase tracking-widest leading-relaxed">
@@ -996,11 +1003,13 @@ const ProductDetail = () => {
             </p>
           </div>
           {/* Auto-dismiss progress bar */}
-          <div 
-            className="absolute bottom-0 left-0 h-1 bg-emerald-500" 
+          <div
+            className="absolute bottom-0 left-0 h-1 bg-emerald-500"
             style={{
               width: "100%",
-              animation: successSnackbarIn ? "shrink 2s linear forwards" : "none"
+              animation: successSnackbarIn
+                ? "shrink 2s linear forwards"
+                : "none",
             }}
           />
         </div>

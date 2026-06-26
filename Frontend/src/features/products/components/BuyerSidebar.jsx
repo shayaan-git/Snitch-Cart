@@ -18,7 +18,13 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
      Buyers (and guests) only see the Store link. */
   const navLinks = [
     ...(user?.role === "seller"
-      ? [{ label: "Dashboard", href: "/seller/dashboard", icon: <DashboardNavIcon /> }]
+      ? [
+          {
+            label: "Dashboard",
+            href: "/seller/dashboard",
+            icon: <DashboardNavIcon />,
+          },
+        ]
       : []),
     { label: "Store", href: "/", icon: <StoreNavIcon /> },
   ];
@@ -73,7 +79,9 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
               >
                 {link.icon}
                 {!collapsed && (
-                  <span className="uppercase tracking-widest text-xs">{link.label}</span>
+                  <span className="uppercase tracking-widest text-xs">
+                    {link.label}
+                  </span>
                 )}
               </Link>
             );
@@ -143,7 +151,9 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
                 `}
               >
                 {link.icon}
-                <span className="uppercase tracking-widest text-xs">{link.label}</span>
+                <span className="uppercase tracking-widest text-xs">
+                  {link.label}
+                </span>
               </Link>
             );
           })}
@@ -161,4 +171,3 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
 };
 
 export default BuyerSidebar;
-
