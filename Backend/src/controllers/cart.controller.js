@@ -1,3 +1,4 @@
+
 import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
 import { stockOfVariant } from "../dao/product.dao.js";
@@ -50,7 +51,12 @@ export const addToCart = async (req, res) => {
          {
             arrayFilters: variantId
                ? [{ "elem.product": productId, "elem.variant": variantId }]
-               : [{ "elem.product": productId, "elem.variant": { $exists: false } }],
+               : [
+                    {
+                       "elem.product": productId,
+                       "elem.variant": { $exists: false },
+                    },
+                 ],
             new: true,
          },
       );
@@ -70,15 +76,14 @@ export const addToCart = async (req, res) => {
 
    // 5. Price — from variant if exists, else base product price
    const price = variantId
-      ? product.variants.id(variantId)?.price ?? product.price
+      ? (product.variants.id(variantId)?.price ?? product.price)
       : product.price;
-
 
    cart.items.push({
       product: productId,
       ...(variantId && { variant: variantId }),
       quantity,
-      price
+      price,
    });
 
    await cart.save();
@@ -104,5 +109,72 @@ export const getCart = async (req, res) => {
       message: "Cart fetched successfully",
       success: true,
       cart,
+   });
+};
+
+export const incrementCartItemQuantity = async (req, res) => {
+   const { productId, variantId } = req.params;
+
+   // Look up the product; only filter by variant when variantId is present
+   const product = await productModel.findOne(
+      variantId
+         ? { _id: productId, "variants._id": variantId }
+         : { _id: productId },
+   );
+
+   if (!product) {
+      return res.status(404).json({
+         message: "Product not found",
+         success: false,
+      });
+   }
+
+   // Bug fix: was using productModel instead of cartModel
+   const cart = await cartModel.findOne({ user: req.user._id });
+
+   if (!cart) {
+      return res.status(404).json({
+         message: "Cart not found",
+         success: false,
+      });
+   }
+
+   // For base products use product.stock directly; stockOfVariant needs a variantId
+   const stock = variantId
+      ? await stockOfVariant(productId, variantId)
+      : product.stock;
+
+   const itemQuantityInCart =
+      cart.items.find(
+         (item) =>
+            item.product.toString() === productId &&
+            // Safe check: base product items have no variant field
+            (variantId
+               ? item.variant?.toString() === variantId
+               : !item.variant),
+      )?.quantity || 0;
+
+   if (itemQuantityInCart + 1 > stock) {
+      return res.status(400).json({
+         message: `Only ${stock} items left in stock. And you already have ${itemQuantityInCart} items in your cart`,
+         success: false,
+      });
+   }
+
+   // Use arrayFilters to safely target the correct item for both base and variant products
+   await cartModel.findOneAndUpdate(
+      { user: req.user._id },
+      { $inc: { "items.$[elem].quantity": 1 } },
+      {
+         arrayFilters: variantId
+            ? [{ "elem.product": productId, "elem.variant": variantId }]
+            : [{ "elem.product": productId, "elem.variant": { $exists: false } }],
+         new: true,
+      },
+   );
+
+   return res.status(200).json({
+      message: "Cart item quantity incremented successfully",
+      success: true,
    });
 };

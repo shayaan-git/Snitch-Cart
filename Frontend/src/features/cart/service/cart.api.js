@@ -15,7 +15,15 @@ export const addItem = async ({ productId, variantId, quantity = 1 }) => {
 };
 
 export const getCart = async () => {
-  // withcredentials: true because cart api is protected route and we need to send cookies to access it (by the way apiInstance mein already de rakha hai.)
-  const response = await cartApiInstance.get("/", { withCredentials: true });
+  const response = await cartApiInstance.get("/");
+  return response.data;
+};
+
+export const incrementCartItemApi = async ({productId, variantId}) => {
+  const url = variantId
+    ? `/quantity/increment/${productId}/${variantId}`
+    : `/quantity/increment/${productId}`;
+
+  const response = await cartApiInstance.patch(url);
   return response.data;
 };

@@ -125,8 +125,8 @@ const SAMPLE_CART_DATA = [
 const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const reduxItems = useSelector((state) => state.cart.items);
-  const { handleGetCart } = useCart();
+  const cartItems = useSelector((state) => state.cart.items);
+  const { handleGetCart, handleIncrementCartItem } = useCart();
 
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -145,13 +145,15 @@ const Cart = () => {
   /* Sync local items with Redux or fallback to sample data */
   useEffect(() => {
     if (loaded) {
-      if (reduxItems && reduxItems.length > 0) {
-        setItems(reduxItems);
+      if (cartItems && cartItems.length > 0) {
+        setItems(cartItems);
       } else {
         setItems(SAMPLE_CART_DATA);
       }
     }
-  }, [loaded, reduxItems]);
+  }, [loaded, cartItems]);
+
+  console.log(cartItems)
 
   const handleQtyChange = (itemId, newQty) => {
     if (newQty < 1) return;
@@ -213,7 +215,7 @@ const Cart = () => {
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em] mb-1">
                   <SparkleIcon />
-                  Elevate Luxury
+                  Elevate | Rise Above Ordinary
                 </span>
                 <h1
                   className="text-4xl sm:text-5xl font-light text-[#1A1A1A] tracking-wide"
@@ -373,9 +375,19 @@ const Cart = () => {
                             </span>
                             <button
                               type="button"
-                              onClick={() =>
-                                handleQtyChange(item._id, item.quantity + 1)
-                              }
+                              onClick={() => {
+                                handleIncrementCartItem({
+                                  productId: prod._id,
+                                  variantId,
+                                });
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i._id === item._id
+                                      ? { ...i, quantity: i.quantity + 1 }
+                                      : i,
+                                  ),
+                                );
+                              }}
                               className="w-8 h-8 flex items-center justify-center text-[#1A1A1A] hover:bg-[#C4A96B] hover:text-white transition-colors duration-200 text-sm cursor-pointer"
                               aria-label="Increase quantity"
                             >
