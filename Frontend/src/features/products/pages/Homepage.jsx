@@ -14,8 +14,7 @@ const Homepage = () => {
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
+  const { mobileSidebarOpen, setMobileSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useOutletContext();
 
   useEffect(() => {
     (async () => {

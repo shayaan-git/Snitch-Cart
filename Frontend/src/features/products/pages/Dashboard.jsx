@@ -57,7 +57,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FAF8F5] flex"
+      className="h-screen bg-[#FAF8F5] flex"
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
       {/* ── Sidebar ─────────────────────────────────────────────── */}

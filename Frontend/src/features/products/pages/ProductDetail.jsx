@@ -136,8 +136,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [hoveredImg, setHoveredImg] = useState(null); // preview on hover without committing
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
+  const { mobileSidebarOpen, setMobileSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useOutletContext();
 
   // Variant selection: { Color: "Black", Size: "Large" }
   const [selectedAttrs, setSelectedAttrs] = useState({});
@@ -147,6 +146,8 @@ const ProductDetail = () => {
 
   // Auth state — used to gate the "add to cart" toast
   const user = useSelector((state) => state.auth.user);
+  // Sellers can browse the store but cannot purchase
+  const isSeller = user?.role === "seller";
 
   const { handleGetProductById } = useProduct();
   const { handleAddItem } = useCart();
@@ -704,24 +705,34 @@ const ProductDetail = () => {
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 ">
-                  {/* Add to Cart */}
+                  {/* Add to Cart — hidden for sellers */}
                   <button
                     id="product-detail-add-to-cart"
                     className={`
                       flex items-center justify-center gap-2 px-8 py-3
                       ${
-                        isOutOfStock
-                          ? "border border-red-300 text-red-400"
-                          : "border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white"
+                        isSeller
+                          ? "border border-gray-800 text-gray-600 cursor-not-allowed"
+                          : isOutOfStock
+                            ? "border border-red-300 text-red-400"
+                            : "border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white"
                       }
                       text-[10px] font-normal uppercase tracking-widest
                       transition-all duration-200 flex-1 sm:flex-none sm:min-w-[160px]
                       disabled:opacity-40 disabled:cursor-not-allowed
-                      ${isOutOfStock ? "disabled:hover:bg-transparent disabled:hover:text-red-400" : "disabled:hover:bg-transparent disabled:hover:text-[#C4A96B]"}
+                      ${
+                        isSeller
+                          ? "disabled:hover:bg-transparent disabled:hover:text-gray-800"
+                          : isOutOfStock
+                            ? "disabled:hover:bg-transparent disabled:hover:text-red-400"
+                            : "disabled:hover:bg-transparent disabled:hover:text-[#C4A96B]"
+                      }
                       cursor-pointer
                     `}
-                    disabled={!canAddToCart}
+                    disabled={isSeller || !canAddToCart}
                     onClick={async () => {
+                      // Sellers cannot purchase — silent block (button is disabled anyway)
+                      if (isSeller) return;
                       if (isOutOfStock) {
                         showCartToast("oos");
                         return;
@@ -745,22 +756,51 @@ const ProductDetail = () => {
                     }}
                   >
                     <CartIcon />
-                    {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+                    {isSeller
+                      ? "Seller View"
+                      : isOutOfStock
+                        ? "Out of Stock"
+                        : "Add to Cart"}
                   </button>
 
                   {/* Buy Now */}
                   <button
                     id="product-detail-buy-now"
-                    className="
+                    disabled={isSeller || !canAddToCart}
+                    className={`
                       flex items-center justify-center gap-2 px-8 py-3
-                      bg-[#1A1A1A] text-white cursor-pointer
                       text-[10px] font-normal uppercase tracking-widest
-                      hover:bg-[#C4A96B]
                       transition-all duration-200 flex-1 sm:flex-none sm:min-w-[160px]
-                    "
+                      ${
+                        isSeller
+                          ? "bg-transparent border border-gray-800 text-gray-600 cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-600"
+                          : "bg-[#1A1A1A] text-white cursor-pointer hover:bg-[#C4A96B] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#1A1A1A]"
+                      }
+                    `}
+                    onClick={async () => {
+                      if (isSeller) return;
+                      if (isOutOfStock) {
+                        showCartToast("oos");
+                        return;
+                      }
+                      if (!user) {
+                        showCartToast("auth");
+                        return;
+                      }
+                      const result = await handleAddItem({
+                        productId: product._id,
+                        variantId: activeVariant?._id,
+                        ...(hasBaseAttrs && {
+                          selectedAttributes: selectedBaseAttrs,
+                        }),
+                      });
+                      if (result) {
+                        navigate("/cart");
+                      }
+                    }}
                   >
                     <BoltIcon />
-                    Buy Now
+                    {isSeller ? "Seller View" : "Buy Now"}
                   </button>
                 </div>
 

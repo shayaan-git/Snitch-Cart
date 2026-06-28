@@ -58,7 +58,7 @@ const BuyerProductCard = ({ product }) => {
             className="text-[#1A1A1A] font-light text-base tracking-tight"
             style={{ fontFamily: "'Nib Pro', serif" }}
           >
-            {formatPrice(price?.amount, price?.currency)}
+            Price: {formatPrice(price?.amount, price?.currency)}
           </span>
           {/* <button
             id={`add-to-cart-${product._id}`}

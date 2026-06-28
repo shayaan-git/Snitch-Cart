@@ -51,7 +51,7 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
               className="text-md font-light tracking-widest text-[#1A1A1A] truncate"
               style={{ fontFamily: "'Nib Pro', serif" }}
             >
-              Elevate
+              Elevate Store
             </span>
           )}
           <button

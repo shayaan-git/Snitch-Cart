@@ -45,7 +45,7 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
               className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
               style={{ fontFamily: "'Nib Pro', serif" }}
             >
-              Elevate
+              Seller Studio
             </span>
           )}
           <button
