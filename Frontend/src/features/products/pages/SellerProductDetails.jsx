@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct";
-import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import SellerSidebar from "../components/SellerSidebar";
 import { formatPrice, formatDate } from "../utils/formatters";
 import {
@@ -118,7 +117,7 @@ const VariantCard = ({ variant, idx, onEdit, onDelete, onStockChange }) => {
             </p>
             <p
               className="text-xl font-light text-[#C4A96B]"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
               {formatPrice(variant.price?.amount, variant.price?.currency)}
             </p>
@@ -581,7 +580,7 @@ const SellerProductDetails = () => {
                 </span>
                 <h1
                   className="text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight mt-1"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {loading ? "Loading…" : (product?.title ?? "Product")}
                 </h1>
@@ -595,7 +594,7 @@ const SellerProductDetails = () => {
                 <span className="text-5xl">🕵️</span>
                 <h2
                   className="text-2xl font-light text-[#1A1A1A]"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   Product not found
                 </h2>
@@ -705,7 +704,7 @@ const SellerProductDetails = () => {
                     <span
                       className="text-3xl font-light text-[#C4A96B]"
                       style={{
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontFamily: "'Nib Pro', serif",
                       }}
                     >
                       {formatPrice(
@@ -766,7 +765,7 @@ const SellerProductDetails = () => {
                   <h2
                     className="text-2xl font-light tracking-wide text-[#1A1A1A]"
                     style={{
-                      fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      fontFamily: "'Nib Pro', serif",
                     }}
                   >
                     Product Variants
@@ -809,7 +808,7 @@ const SellerProductDetails = () => {
                     <h3
                       className="text-xl font-light text-[#1A1A1A]"
                       style={{
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontFamily: "'Nib Pro', serif",
                       }}
                     >
                       No variants yet

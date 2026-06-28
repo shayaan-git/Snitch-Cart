@@ -83,7 +83,7 @@ const Dashboard = () => {
               </span>
               <h1
                 className="text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight mt-1"
-                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                style={{ fontFamily: "'Nib Pro', serif" }}
               >
                 My Products
               </h1>
@@ -101,7 +101,7 @@ const Dashboard = () => {
               <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
                 <p
                   className="text-5xl font-light text-[#1A1A1A]"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {sellerProducts?.length ?? 0}
                 </p>
@@ -112,7 +112,7 @@ const Dashboard = () => {
               <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
                 <p
                   className="text-5xl font-light text-[#C4A96B]"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {filtered.length}
                 </p>
@@ -123,7 +123,7 @@ const Dashboard = () => {
               <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm hidden sm:block">
                 <p
                   className="text-5xl font-light text-[#1A1A1A]"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {sellerProducts?.length > 0
                     ? formatPrice(
@@ -206,7 +206,7 @@ const Dashboard = () => {
               <div className="flex flex-col gap-2">
                 <h2
                   className="text-[#1A1A1A] font-light text-2xl"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   Something went wrong
                 </h2>
@@ -240,7 +240,7 @@ const Dashboard = () => {
               <div className="flex flex-col gap-2">
                 <h2
                   className="text-[#1A1A1A] font-light text-2xl"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   No products listed yet
                 </h2>
@@ -275,7 +275,7 @@ const Dashboard = () => {
                 <span className="text-4xl">🔍</span>
                 <h2
                   className="text-[#1A1A1A] font-light text-xl"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   No products match &ldquo;{search}&rdquo;
                 </h2>

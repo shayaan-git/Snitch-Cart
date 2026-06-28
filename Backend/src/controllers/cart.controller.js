@@ -1,4 +1,4 @@
-
+import mongoose from "mongoose";
 import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
 import { stockOfVariant } from "../dao/product.dao.js";
@@ -113,68 +113,247 @@ export const getCart = async (req, res) => {
 };
 
 export const incrementCartItemQuantity = async (req, res) => {
-   const { productId, variantId } = req.params;
+   const session = await mongoose.startSession();
 
-   // Look up the product; only filter by variant when variantId is present
-   const product = await productModel.findOne(
-      variantId
-         ? { _id: productId, "variants._id": variantId }
-         : { _id: productId },
-   );
+   try {
+      const { productId, variantId } = req.params;
+      const pid = new mongoose.Types.ObjectId(productId);
+      const vid = variantId ? new mongoose.Types.ObjectId(variantId) : null;
 
-   if (!product) {
-      return res.status(404).json({
-         message: "Product not found",
+      await session.withTransaction(async () => {
+         // Product lookup is genuinely needed here for stock on base products
+         const product = await productModel.findOne(
+            vid ? { _id: pid, "variants._id": vid } : { _id: pid },
+            null,
+            { session },
+         );
+
+         if (!product) {
+            return res.status(404).json({
+               message: "Product not found",
+               success: false,
+            });
+         }
+
+         const cart = await cartModel.findOne({ user: req.user._id }, null, {
+            session,
+         });
+
+         if (!cart) {
+            return res.status(404).json({
+               message: "Cart not found",
+               success: false,
+            });
+         }
+
+         // Explicit item existence check — don't fall back to 0
+         const cartItem = cart.items.find(
+            (item) =>
+               item.product.equals(pid) &&
+               (vid ? item.variant?.equals(vid) : !item.variant),
+         );
+
+         if (!cartItem) {
+            return res.status(404).json({
+               message: "Item not found in cart",
+               success: false,
+            });
+         }
+
+         // Stock resolved inside the transaction to avoid stale reads
+         const stock = vid
+            ? await stockOfVariant(productId, variantId, session)
+            : product.stock;
+
+         if (cartItem.quantity + 1 > stock) {
+            return res.status(400).json({
+               message: `Only ${stock} item(s) in stock. You already have ${cartItem.quantity} in your cart`,
+               success: false,
+            });
+         }
+
+         const updated = await cartModel.findOneAndUpdate(
+            {
+               user: req.user._id,
+               items: {
+                  $elemMatch: vid
+                     ? { product: pid, variant: vid }
+                     : { product: pid, variant: { $exists: false } },
+               },
+            },
+            { $inc: { "items.$[elem].quantity": 1 } },
+            {
+               arrayFilters: vid
+                  ? [{ "elem.product": pid, "elem.variant": vid }]
+                  : [
+                       {
+                          "elem.product": pid,
+                          "elem.variant": { $exists: false },
+                       },
+                    ],
+               new: true,
+               session,
+            },
+         );
+
+         if (!updated) {
+            return res.status(404).json({
+               message: "Item not found in cart",
+               success: false,
+            });
+         }
+
+         return res.status(200).json({
+            message: "Cart item quantity incremented successfully",
+            success: true,
+         });
+      });
+   } catch (error) {
+      return res.status(500).json({
+         message: "Internal server error",
+         success: false,
+      });
+   } finally {
+      session.endSession();
+   }
+};
+
+export const decrementCartItemQuantity = async (req, res) => {
+   try {
+      const { productId, variantId } = req.params;
+      const pid = new mongoose.Types.ObjectId(productId);
+      const vid = variantId ? new mongoose.Types.ObjectId(variantId) : null;
+
+      // First confirm the item exists in the cart at all
+      const cart = await cartModel.findOne({
+         user: req.user._id,
+         "items.product": pid,
+         ...(vid ? { "items.variant": vid } : {}),
+      });
+
+      if (!cart) {
+         return res.status(404).json({
+            message: "Item not found in cart",
+            success: false,
+         });
+      }
+
+      const cartItem = cart.items.find(
+         (item) =>
+            item.product.equals(pid) &&
+            (vid ? item.variant?.equals(vid) : !item.variant),
+      );
+
+      if (!cartItem) {
+         return res.status(404).json({
+            message: "Item not found in cart",
+            success: false,
+         });
+      }
+
+      // Guard minimum quantity check before touching the DB
+      if (cartItem.quantity <= 1) {
+         return res.status(400).json({
+            message: "Cart item quantity cannot go below 1",
+            success: false,
+         });
+      }
+
+      // Atomic decrement — quantity > 1 guard baked into the filter
+      const updated = await cartModel.findOneAndUpdate(
+         {
+            user: req.user._id,
+            items: {
+               $elemMatch: vid
+                  ? { product: pid, variant: vid, quantity: { $gt: 1 } }
+                  : {
+                       product: pid,
+                       variant: { $exists: false },
+                       quantity: { $gt: 1 },
+                    },
+            },
+         },
+         { $inc: { "items.$[elem].quantity": -1 } },
+         {
+            arrayFilters: vid
+               ? [{ "elem.product": pid, "elem.variant": vid }]
+               : [{ "elem.product": pid, "elem.variant": { $exists: false } }],
+            new: true,
+         },
+      );
+
+      if (!updated) {
+         return res.status(400).json({
+            message: "Cart item quantity cannot go below 1",
+            success: false,
+         });
+      }
+
+      return res.status(200).json({
+         message: "Cart item decremented successfully",
+         success: true,
+      });
+   } catch (error) {
+      return res.status(500).json({
+         message: "Internal server error",
          success: false,
       });
    }
+};
 
-   // Bug fix: was using productModel instead of cartModel
-   const cart = await cartModel.findOne({ user: req.user._id });
+export const removeCartItem = async (req, res) => {
+   try {
+      const { productId, variantId } = req.params;
 
-   if (!cart) {
-      return res.status(404).json({
-         message: "Cart not found",
-         success: false,
-      });
-   }
+      const cart = await cartModel.findOne({ user: req.user._id });
+      if (!cart) {
+         return res
+            .status(404)
+            .json({ message: "Cart not found", success: false });
+      }
 
-   // For base products use product.stock directly; stockOfVariant needs a variantId
-   const stock = variantId
-      ? await stockOfVariant(productId, variantId)
-      : product.stock;
-
-   const itemQuantityInCart =
-      cart.items.find(
+      // Check item exists with correct variant match
+      const cartItem = cart.items.find(
          (item) =>
             item.product.toString() === productId &&
-            // Safe check: base product items have no variant field
             (variantId
                ? item.variant?.toString() === variantId
                : !item.variant),
-      )?.quantity || 0;
+      );
 
-   if (itemQuantityInCart + 1 > stock) {
-      return res.status(400).json({
-         message: `Only ${stock} items left in stock. And you already have ${itemQuantityInCart} items in your cart`,
-         success: false,
+      if (!cartItem) {
+         return res
+            .status(404)
+            .json({ message: "Item not found in cart", success: false });
+      }
+
+      // ✅ Build pull filter — must include variant to avoid removing wrong variants
+      const pullFilter = { product: new mongoose.Types.ObjectId(productId) };
+
+      if (variantId) {
+         pullFilter.variant = new mongoose.Types.ObjectId(variantId);
+      } else {
+         // Only remove item that has no variant
+         pullFilter.variant = { $exists: false };
+      }
+
+      const updatedCart = await cartModel
+         .findOneAndUpdate(
+            { user: req.user._id },
+            { $pull: { items: pullFilter } },
+            { new: true },
+         )
+         .populate("items.product"); // optional but useful
+
+      return res.status(200).json({
+         message: "Item removed from cart successfully",
+         success: true,
+         cart: updatedCart,
       });
+   } catch (error) {
+      console.error("removeCartItem error:", error);
+      return res
+         .status(500)
+         .json({ message: "Internal server error", success: false });
    }
-
-   // Use arrayFilters to safely target the correct item for both base and variant products
-   await cartModel.findOneAndUpdate(
-      { user: req.user._id },
-      { $inc: { "items.$[elem].quantity": 1 } },
-      {
-         arrayFilters: variantId
-            ? [{ "elem.product": productId, "elem.variant": variantId }]
-            : [{ "elem.product": productId, "elem.variant": { $exists: false } }],
-         new: true,
-      },
-   );
-
-   return res.status(200).json({
-      message: "Cart item quantity incremented successfully",
-      success: true,
-   });
 };

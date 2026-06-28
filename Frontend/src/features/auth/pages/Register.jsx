@@ -147,7 +147,7 @@ const Register = () => {
         <div className="absolute bottom-14 left-14 max-w-md pointer-events-none">
           <h2
             className="text-5xl font-light text-white tracking-wide mb-4 leading-tight"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             Discover Exclusivity
           </h2>
@@ -168,7 +168,7 @@ const Register = () => {
             </span>
             <h1
               className="text-3xl font-light text-[#1A1A1A] leading-tight"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
               Create account
             </h1>

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useOutletContext } from "react-router";
+import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct.js";
 import { useCart } from "../../cart/hook/useCart.js";
-import HeaderBar from "../../shared/components/HeaderBar.jsx";
+import { showCartToast } from "../../shared/components/CartItemToastBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import { formatPrice } from "../utils/formatters.js";
 import {
@@ -135,7 +136,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [hoveredImg, setHoveredImg] = useState(null); // preview on hover without committing
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   // Variant selection: { Color: "Black", Size: "Large" }
@@ -144,11 +145,8 @@ const ProductDetail = () => {
   // Base product attribute selection: { Size: "M", Color: "Black" }
   const [selectedBaseAttrs, setSelectedBaseAttrs] = useState({});
 
-  const [oosSnackbar, setOosSnackbar] = useState(false);
-  const [oosSnackbarIn, setOosSnackbarIn] = useState(false);
-
-  const [successSnackbar, setSuccessSnackbar] = useState(false);
-  const [successSnackbarIn, setSuccessSnackbarIn] = useState(false);
+  // Auth state — used to gate the "add to cart" toast
+  const user = useSelector((state) => state.auth.user);
 
   const { handleGetProductById } = useProduct();
   const { handleAddItem } = useCart();
@@ -161,38 +159,6 @@ const ProductDetail = () => {
       setLoading(false);
     })();
   }, [productId]);
-
-  // Auto-dismiss OOS snackbar
-  useEffect(() => {
-    let timeoutId;
-    if (oosSnackbar) {
-      // Trigger entrance animation next frame
-      requestAnimationFrame(() => setOosSnackbarIn(true));
-
-      // Auto-hide after 4 seconds
-      timeoutId = setTimeout(() => {
-        setOosSnackbarIn(false);
-        setTimeout(() => setOosSnackbar(false), 300); // Wait for exit animation
-      }, 2000);
-    }
-    return () => clearTimeout(timeoutId);
-  }, [oosSnackbar]);
-
-  // Auto-dismiss Success snackbar
-  useEffect(() => {
-    let timeoutId;
-    if (successSnackbar) {
-      // Trigger entrance animation next frame
-      requestAnimationFrame(() => setSuccessSnackbarIn(true));
-
-      // Auto-hide after 4 seconds
-      timeoutId = setTimeout(() => {
-        setSuccessSnackbarIn(false);
-        setTimeout(() => setSuccessSnackbar(false), 300); // Wait for exit animation
-      }, 2000);
-    }
-    return () => clearTimeout(timeoutId);
-  }, [successSnackbar]);
 
   // ── Derive active variant & display values ──────────────────────────
   const variants = product?.variants ?? [];
@@ -316,7 +282,7 @@ const ProductDetail = () => {
   return (
     <div
       className="h-screen overflow-hidden bg-[#FAF8F5] flex"
-      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+      style={{ fontFamily: "'Nib Pro', serif" }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────── */}
       <BuyerSidebar
@@ -541,7 +507,7 @@ const ProductDetail = () => {
                 <h1
                   className="text-4xl md:text-5xl font-light text-[#1A1A1A] leading-tight tracking-wide"
                   style={{
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
+                    fontFamily: "'Nib Pro', serif",
                   }}
                 >
                   {product.title}
@@ -623,7 +589,7 @@ const ProductDetail = () => {
                     <span
                       className="text-[#C4A96B] text-3xl font-light font-normal uppercase tracking-wide transition-all duration-300"
                       style={{
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontFamily: "'Nib Pro', serif",
                       }}
                     >
                       {formatPrice(
@@ -757,17 +723,25 @@ const ProductDetail = () => {
                     disabled={!canAddToCart}
                     onClick={async () => {
                       if (isOutOfStock) {
-                        setOosSnackbar(true);
+                        showCartToast("oos");
                         return;
                       }
-                      await handleAddItem({
+                      // Guard: user must be logged in
+                      if (!user) {
+                        showCartToast("auth");
+                        return;
+                      }
+                      const result = await handleAddItem({
                         productId: product._id,
                         variantId: activeVariant?._id,
                         ...(hasBaseAttrs && {
                           selectedAttributes: selectedBaseAttrs,
                         }),
                       });
-                      setSuccessSnackbar(true);
+                      // Only toast success when the API call actually returned data
+                      if (result) {
+                        showCartToast("success");
+                      }
                     }}
                   >
                     <CartIcon />
@@ -903,117 +877,13 @@ const ProductDetail = () => {
           <span
             className="text-[#C4A96B] font-light text-lg tracking-wide"
             style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontFamily: "'Nib Pro', serif",
             }}
           >
             Elevate
           </span>
         </footer>
       </div>
-
-      <style>{`
-      @keyframes shrink {
-        from { width: 100%; }
-        to { width: 0%; }
-      }
-    `}</style>
-
-      {/* ── Snackbar ────────────────────────────────────────────────── */}
-      {oosSnackbar && (
-        <div
-          className={`
-            fixed top-4 right-4 z-50 overflow-hidden
-            flex items-start gap-3 px-5 py-4
-            bg-[#1A1A1A] text-white border border-red-400/30
-            shadow-xl max-w-[320px]
-            transition-all duration-300 ease-out
-            ${oosSnackbarIn ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}
-          `}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            className="flex-shrink-0 mt-0.5 text-red-400"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-            />
-          </svg>
-          <div className="flex flex-col gap-1">
-            <p className="text-[11px] uppercase tracking-widest leading-relaxed">
-              This item is currently{" "}
-              <span className="text-red-400">out of stock</span>.
-            </p>
-            <p className="text-[10px] text-gray-400 tracking-wide">
-              Please wait for a stock update or add it to your wishlist.
-            </p>
-          </div>
-          {/* Auto-dismiss progress bar */}
-          <div
-            className="absolute bottom-0 left-0 h-1 bg-red-500"
-            style={{
-              width: "100%",
-              animation: oosSnackbarIn ? "shrink 2s linear forwards" : "none",
-            }}
-          />
-        </div>
-      )}
-
-      {/* ── Success Snackbar ──────────────────────────────────────────────── */}
-      {successSnackbar && (
-        <div
-          className={`
-            fixed top-4 right-4 z-50 overflow-hidden
-            flex items-start gap-3 px-5 py-4
-            bg-[#1A1A1A] text-white border border-emerald-400/30
-            shadow-xl max-w-[320px]
-            transition-all duration-300 ease-out
-            ${successSnackbarIn ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}
-          `}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            className="flex-shrink-0 mt-0.5 text-emerald-400"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div className="flex flex-col gap-1">
-            <p className="text-[11px] uppercase tracking-widest leading-relaxed">
-              Item added to your cart
-            </p>
-            <p className="text-[10px] text-gray-400 tracking-wide">
-              Check your cart to proceed with checkout.
-            </p>
-          </div>
-          {/* Auto-dismiss progress bar */}
-          <div
-            className="absolute bottom-0 left-0 h-1 bg-emerald-500"
-            style={{
-              width: "100%",
-              animation: successSnackbarIn
-                ? "shrink 2s linear forwards"
-                : "none",
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 };

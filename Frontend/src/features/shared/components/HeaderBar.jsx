@@ -44,26 +44,29 @@ const HeaderBar = ({ onMenuClick }) => {
         <Link
           to="/"
           className="text-lg font-light tracking-widest text-[#1A1A1A]"
-          style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+          style={{ fontFamily: "'Nib Pro', serif" }}
         >
           Elevate
         </Link>
       </div>
 
-      {user && (
+      {user ? (
+        /* ── Logged-in controls ─────────────────────────────────────────── */
         <div className="flex items-center gap-6">
-          <Link
-            to="/cart"
-            aria-label="Shopping Cart"
-            className="relative text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
-          >
-            <CartIcon />
-            {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#C4A96B] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-sans">
-                {cartItems.length}
-              </span>
-            )}
-          </Link>
+          {user.role !== "seller" && (
+            <Link
+              to="/cart"
+              aria-label="Shopping Cart"
+              className="relative text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
+            >
+              <CartIcon />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#C4A96B] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-sans">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
+          )}
 
           <div className="relative" ref={dropdownRef}>
             <button
@@ -98,6 +101,24 @@ const HeaderBar = ({ onMenuClick }) => {
               </div>
             )}
           </div>
+        </div>
+      ) : (
+        /* ── Guest controls ─────────────────────────────────────────────── */
+        <div className="flex items-center gap-3">
+          <Link
+            to="/login"
+            id="header-login-btn"
+            className="text-[10px] uppercase tracking-widest text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 px-2 py-1"
+          >
+            Login
+          </Link>
+          <Link
+            to="/register"
+            id="header-signup-btn"
+            className="text-[10px] uppercase tracking-widest px-4 py-2 border border-[#C4A96B] text-[#C4A96B] hover:bg-[#C4A96B] hover:text-white transition-all duration-200"
+          >
+            Sign Up
+          </Link>
         </div>
       )}
     </header>

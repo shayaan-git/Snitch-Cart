@@ -144,7 +144,7 @@ const Login = () => {
         <div className="absolute bottom-14 left-14 max-w-md pointer-events-none">
           <h2
             className="text-5xl font-light text-white tracking-wide mb-4 leading-tight"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             Welcome Back
           </h2>
@@ -165,7 +165,7 @@ const Login = () => {
             </span>
             <h1
               className="text-4xl font-light text-[#1A1A1A] leading-tight"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
               Log in
             </h1>

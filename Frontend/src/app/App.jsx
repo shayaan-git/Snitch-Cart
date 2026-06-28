@@ -4,6 +4,7 @@ import "./App.css";
 import { routes } from "./app.routes.jsx";
 import { useSelector } from "react-redux";
 import { useAuth } from "../features/auth/hook/useAuth.js";
+import { CartToastContainer } from "../features/shared/components/CartItemToastBar.jsx";
 
 function App() {
   const { handleGetMe } = useAuth();
@@ -22,6 +23,7 @@ function App() {
 
   return (
     <>
+      <CartToastContainer />
       <RouterProvider router={routes} />
     </>
   );

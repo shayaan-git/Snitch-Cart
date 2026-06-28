@@ -2,12 +2,14 @@ import express from "express";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 import {
    validateAddToCart,
-   validateIncrementCartItemQuantity,
+   validateCartItemQuantity,
 } from "../validator/cart.validator.js";
 import {
    addToCart,
+   decrementCartItemQuantity,
    getCart,
    incrementCartItemQuantity,
+   removeCartItem,
 } from "../controllers/cart.controller.js";
 
 const router = express.Router();
@@ -49,7 +51,7 @@ router.get("/", authenticateUser, getCart);
 router.patch(
    "/quantity/increment/:productId/:variantId",
    authenticateUser,
-   validateIncrementCartItemQuantity,
+   validateCartItemQuantity,
    incrementCartItemQuantity,
 );
 
@@ -57,8 +59,48 @@ router.patch(
 router.patch(
    "/quantity/increment/:productId",
    authenticateUser,
-   validateIncrementCartItemQuantity,
+   validateCartItemQuantity,
    incrementCartItemQuantity,
 );
+
+/**
+ * @route PATCH /api/cart/quantity/decrement/:productId/:variantId
+ * @desc decrement item quantity in cart by one
+ * @access Private
+ * @argument productId - ID of the product to update
+ * @argument variantId - ID of the variant to update
+ */
+
+router.patch(
+   "/quantity/decrement/:productId/:variantId",
+   authenticateUser,
+   validateCartItemQuantity,
+   decrementCartItemQuantity,
+);
+
+// Without variant (base product)
+router.patch(
+   "/quantity/decrement/:productId",
+   authenticateUser,
+   validateCartItemQuantity,
+   decrementCartItemQuantity,
+);
+
+/**
+ * @route DELETE /api/cart/item/delete/:productId/:variantId
+ * @desc remove item from cart
+ * @access Private
+ * @argument productId - ID of the product to delete
+ * @argument variantId - ID of the variant to delete
+ */
+
+router.delete(
+   "/item/delete/:productId/:variantId",
+   authenticateUser,
+   removeCartItem,
+);
+
+// without variant (base product)
+router.delete("/item/delete/:productId", authenticateUser, removeCartItem);
 
 export default router;

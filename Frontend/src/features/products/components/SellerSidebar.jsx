@@ -43,7 +43,7 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
           {!collapsed && (
             <span
               className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
               Elevate
             </span>
@@ -139,7 +139,7 @@ const SellerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
         <div className="flex items-center justify-between px-6 h-14 border-b border-gray-100 flex-shrink-0">
           <span
             className="text-lg font-light tracking-widest text-[#1A1A1A]"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             Elevate
           </span>

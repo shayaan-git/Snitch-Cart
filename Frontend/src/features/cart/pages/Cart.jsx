@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link, useNavigate, useOutletContext } from "react-router";
 import { useCart } from "../hook/useCart";
-import { removeItem, updateQuantity } from "../state/cart.slice.js";
 import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import BuyerSidebar from "../../products/components/BuyerSidebar.jsx";
 import { formatPrice } from "../../products/utils/formatters.js";
@@ -123,10 +122,9 @@ const SAMPLE_CART_DATA = [
 
 /* ─── Cart Page Component ─────────────────────────────────────────────── */
 const Cart = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
-  const { handleGetCart, handleIncrementCartItem } = useCart();
+  const { handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveCartItem } = useCart();
 
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -148,25 +146,11 @@ const Cart = () => {
       if (cartItems && cartItems.length > 0) {
         setItems(cartItems);
       } else {
-        setItems(SAMPLE_CART_DATA);
+        setItems([]);
       }
     }
   }, [loaded, cartItems]);
 
-  console.log(cartItems)
-
-  const handleQtyChange = (itemId, newQty) => {
-    if (newQty < 1) return;
-    setItems((prev) =>
-      prev.map((i) => (i._id === itemId ? { ...i, quantity: newQty } : i)),
-    );
-    dispatch(updateQuantity({ id: itemId, quantity: newQty }));
-  };
-
-  const handleRemoveItem = (itemId) => {
-    setItems((prev) => prev.filter((i) => i._id !== itemId));
-    dispatch(removeItem(itemId));
-  };
 
   const handleApplyPromo = (e) => {
     e.preventDefault();
@@ -192,7 +176,7 @@ const Cart = () => {
   return (
     <div
       className="h-screen overflow-hidden bg-[#FAF8F5] flex"
-      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+      style={{ fontFamily: "'Nib Pro', serif" }}
     >
       {/* ── Sidebar Navigation ─────────────────────────────────────── */}
       <BuyerSidebar
@@ -219,7 +203,7 @@ const Cart = () => {
                 </span>
                 <h1
                   className="text-4xl sm:text-5xl font-light text-[#1A1A1A] tracking-wide"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   Shopping Bag
                 </h1>
@@ -246,7 +230,7 @@ const Cart = () => {
                     <h2
                       className="text-3xl font-light text-[#1A1A1A]"
                       style={{
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontFamily: "'Nib Pro', serif",
                       }}
                     >
                       Your Bag is Empty
@@ -312,7 +296,7 @@ const Cart = () => {
                             className="text-xl font-normal text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 truncate font-serif"
                             style={{
                               fontFamily:
-                                "'Cormorant Garamond', Georgia, serif",
+                                "'Nib Pro', serif",
                             }}
                           >
                             {prod.title || "Luxury Piece"}
@@ -348,7 +332,7 @@ const Cart = () => {
                             className="text-xl font-light text-[#1A1A1A] tracking-tight font-serif"
                             style={{
                               fontFamily:
-                                "'Cormorant Garamond', Georgia, serif",
+                                "'Nib Pro', serif",
                             }}
                           >
                             {formatPrice(
@@ -361,9 +345,19 @@ const Cart = () => {
                           <div className="flex items-center border border-gray-200 bg-[#FAF8F5] rounded-sm">
                             <button
                               type="button"
-                              onClick={() =>
-                                handleQtyChange(item._id, item.quantity - 1)
-                              }
+                              onClick={() => {
+                                handleDecrementCartItem({
+                                  productId: prod._id,
+                                  variantId,
+                                });
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i._id === item._id
+                                      ? { ...i, quantity: i.quantity - 1 }
+                                      : i,
+                                  ),
+                                );
+                              }}
                               disabled={item.quantity <= 1}
                               className="w-8 h-8 flex items-center justify-center text-[#1A1A1A] hover:bg-[#C4A96B] hover:text-white transition-colors duration-200 text-sm cursor-pointer disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#1A1A1A]"
                               aria-label="Decrease quantity"
@@ -398,7 +392,14 @@ const Cart = () => {
                           {/* Remove Action */}
                           <button
                             type="button"
-                            onClick={() => handleRemoveItem(item._id)}
+                            onClick={() => {
+                              handleRemoveCartItem({
+                                productId: prod._id,
+                                variantId,
+                                itemId: item._id,
+                              });
+                              setItems((prev) => prev.filter((i) => i._id !== item._id));
+                            }}
                             className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1 cursor-pointer flex items-center gap-1 text-[10px] uppercase tracking-widest sm:mt-1"
                           >
                             <TrashIcon />
@@ -428,7 +429,7 @@ const Cart = () => {
                   <h2
                     className="text-2xl font-light text-[#1A1A1A] border-b border-gray-100 pb-4"
                     style={{
-                      fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      fontFamily: "'Nib Pro', serif",
                     }}
                   >
                     Order Summary
@@ -493,7 +494,7 @@ const Cart = () => {
                       <span
                         className="text-3xl font-light text-[#C4A96B] tracking-tight"
                         style={{
-                          fontFamily: "'Cormorant Garamond', Georgia, serif",
+                          fontFamily: "'Nib Pro', serif",
                         }}
                       >
                         {formatPrice(total, currency)}

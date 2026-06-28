@@ -13,7 +13,7 @@ const BuyerProductCard = ({ product }) => {
       onClick={() => navigate(`/product/${product._id}`)}
       id={`product-card-${product._id}`}
       className="
-        group relative bg-white border border-gray-100 rounded-sm overflow-hidden
+        group relative bg-white border border-gray-100 rounded-xl overflow-hidden
         hover:border-[#C4A96B]/40 hover:shadow-sm
         hover:-translate-y-0.5
         transition-all duration-300 cursor-pointer
@@ -52,15 +52,15 @@ const BuyerProductCard = ({ product }) => {
           {description || "No description provided."}
         </p>
 
-        {/* Price + CTA */}
+        {/* Price + CTA  */}
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
           <span
             className="text-[#1A1A1A] font-light text-base tracking-tight"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             {formatPrice(price?.amount, price?.currency)}
           </span>
-          <button
+          {/* <button
             id={`add-to-cart-${product._id}`}
             className="
               flex items-center gap-1.5 px-3 py-1.5
@@ -73,7 +73,7 @@ const BuyerProductCard = ({ product }) => {
           >
             <CartIcon />
             Add
-          </button>
+          </button> */}
         </div>
       </div>
     </article>

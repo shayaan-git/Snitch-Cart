@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct";
 import { SearchIcon, SparkleIcon, BoxIcon } from "../components/icons.jsx";
-import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import BuyerSidebar from "../components/BuyerSidebar.jsx";
 import SkeletonCard from "../components/SkeletonCard.jsx";
 import BuyerProductCard from "../components/BuyerProductCard.jsx";
@@ -15,7 +14,7 @@ const Homepage = () => {
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
   useEffect(() => {
@@ -34,7 +33,7 @@ const Homepage = () => {
   return (
     <div
       className="min-h-screen bg-[#FAF8F5] flex"
-      style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+      style={{ fontFamily: "'Nib Pro', serif" }}
     >
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <BuyerSidebar
@@ -50,19 +49,19 @@ const Homepage = () => {
         {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         {/* ── Hero Banner ─────────────────────────────────────────── */}
-        <section className="w-full px-10 py-16 border-b border-gray-100 bg-white">
+        <section className="w-full px-10 py-5 border-b border-gray-100 bg-white">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em] mb-6">
+            <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em] mb-2">
               <SparkleIcon />
               New Arrivals
             </span>
             <h1
-              className="text-5xl md:text-6xl font-light text-[#1A1A1A] leading-tight tracking-wide mb-5"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              className="text-5xl md:text-5xl font-light text-[#1A1A1A] leading-tight tracking-wide mb-2"
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
-              Discover Premium Products
+              Discover Your Fashion
             </h1>
-            <p className="text-[#9A9A9A] text-sm leading-relaxed max-w-lg mb-8">
+            <p className="text-[#9A9A9A] text-sm leading-relaxed max-w-lg mb-4">
               Explore our curated collection of high-quality items, handpicked
               just for you.
             </p>
@@ -139,7 +138,7 @@ const Homepage = () => {
               <div className="flex flex-col gap-2">
                 <h2
                   className="text-[#1A1A1A] font-light text-2xl"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   No products available
                 </h2>
@@ -156,7 +155,7 @@ const Homepage = () => {
               <span className="text-4xl">🔍</span>
               <h2
                 className="text-[#1A1A1A] font-light text-xl"
-                style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                style={{ fontFamily: "'Nib Pro', serif" }}
               >
                 No products match &ldquo;{search}&rdquo;
               </h2>
@@ -186,7 +185,7 @@ const Homepage = () => {
           </span>
           <span
             className="text-[#C4A96B] font-light text-lg tracking-wide"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             Elevate
           </span>

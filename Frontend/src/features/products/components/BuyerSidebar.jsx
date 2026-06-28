@@ -35,6 +35,7 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
       <aside
         className={`
           hidden lg:flex flex-col bg-white border-r border-gray-100 flex-shrink-0
+          sticky top-0 h-screen
           transition-all duration-300 ease-in-out
           ${collapsed ? "w-14" : "w-56"}
         `}
@@ -47,8 +48,8 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
         >
           {!collapsed && (
             <span
-              className="text-lg font-light tracking-widest text-[#1A1A1A] truncate"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+              className="text-md font-light tracking-widest text-[#1A1A1A] truncate"
+              style={{ fontFamily: "'Nib Pro', serif" }}
             >
               Elevate
             </span>
@@ -123,7 +124,7 @@ const BuyerSidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
         <div className="flex items-center justify-between px-6 h-14 border-b border-gray-100 flex-shrink-0">
           <span
             className="text-lg font-light tracking-widest text-[#1A1A1A]"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             Elevate
           </span>

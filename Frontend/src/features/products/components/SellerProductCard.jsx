@@ -36,7 +36,7 @@ const SellerProductCard = ({ product, onClick }) => {
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
           <span
             className="text-[#C4A96B] font-light text-base tracking-tight"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ fontFamily: "'Nib Pro', serif" }}
           >
             {formatPrice(price?.amount, price?.currency)}
           </span>

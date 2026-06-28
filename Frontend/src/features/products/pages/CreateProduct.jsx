@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useOutletContext } from "react-router";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
-import HeaderBar from "../../shared/components/HeaderBar";
 import SellerSidebar from "../components/SellerSidebar";
 import { CameraIcon, PlusIcon, SpinnerIcon, XIcon } from "../components/icons";
 
@@ -154,7 +153,7 @@ const CreateProduct = () => {
               <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 mt-1">
                 <h1
                   className="text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+                  style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   Create Product
                 </h1>
