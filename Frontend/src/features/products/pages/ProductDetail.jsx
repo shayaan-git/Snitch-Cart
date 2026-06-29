@@ -282,7 +282,7 @@ const ProductDetail = () => {
 
   return (
     <div
-      className="h-screen overflow-hidden bg-[#FAF8F5] flex"
+      className="flex-1 h-full overflow-hidden bg-[#FAF8F5] flex"
       style={{ fontFamily: "'Nib Pro', serif" }}
     >
       {/* ── Sidebar ────────────────────────────────────────────────── */}

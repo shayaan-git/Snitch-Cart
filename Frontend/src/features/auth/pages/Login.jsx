@@ -129,16 +129,20 @@ const Login = () => {
   return (
     /* Outer wrapper — min-h-screen so it grows naturally; flex-col on mobile, flex-row on desktop */
     <div className="min-h-screen bg-[#FAF8F5] flex flex-col lg:flex-row">
-
       {/* Left Side — Image Panel: sticky so it stays in view on desktop */}
       <div className="hidden lg:block lg:w-1/2 relative bg-[#1A1A1A] overflow-hidden sticky top-0 h-screen flex-shrink-0">
         <img
           src="/images/fashion-model.png"
           alt="Premium Fashion Models"
-          className="absolute inset-0 w-full h-full object-cover opacity-80"
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
         />
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black/50 pointer-events-none" />
+
+        {/* ✅ "Above the Ordinary" pinned to top */}
+        <p className="absolute top-8 left-14 text-white/60 text-sm uppercase tracking-widest pointer-events-none">
+          Above the Ordinary!
+        </p>
 
         {/* Branding on Image */}
         <div className="absolute bottom-14 left-14 max-w-md pointer-events-none">
@@ -146,10 +150,10 @@ const Login = () => {
             className="text-5xl font-light text-white tracking-wide mb-4 leading-tight"
             style={{ fontFamily: "'Nib Pro', serif" }}
           >
-            Welcome Back
+            | Welcome Back
           </h2>
           <p className="text-white/60 text-sm uppercase tracking-widest">
-            Return to the ultimate premium marketplace
+            Return to the Elevate Store
           </p>
         </div>
       </div>

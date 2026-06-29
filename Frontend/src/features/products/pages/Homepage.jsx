@@ -14,7 +14,12 @@ const Homepage = () => {
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const { mobileSidebarOpen, setMobileSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useOutletContext();
+  const {
+    mobileSidebarOpen,
+    setMobileSidebarOpen,
+    sidebarCollapsed,
+    setSidebarCollapsed,
+  } = useOutletContext();
 
   useEffect(() => {
     (async () => {
@@ -31,7 +36,7 @@ const Homepage = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FAF8F5] flex"
+      className="flex-1 h-full bg-[#FAF8F5] flex overflow-hidden"
       style={{ fontFamily: "'Nib Pro', serif" }}
     >
       {/* ── Sidebar ─────────────────────────────────────────────── */}
@@ -43,12 +48,12 @@ const Homepage = () => {
       />
 
       {/* ── Page Content ────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         {/* ── Top Header Bar ──────────────────────────────────────── */}
         {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
 
         {/* ── Hero Banner ─────────────────────────────────────────── */}
-        <section className="w-full px-10 py-5 border-b border-gray-100 bg-white">
+        <section className="w-full px-10 py-5 border-b border-gray-100 bg-white flex-shrink-0">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em] mb-2">
               <SparkleIcon />
@@ -88,7 +93,7 @@ const Homepage = () => {
         </section>
 
         {/* ── Main Content ────────────────────────────────────────── */}
-        <main className="flex-grow px-10 py-12 flex flex-col gap-6 overflow-y-auto">
+        <main className="flex-1 px-10 py-12 flex flex-col gap-6">
           {/* Results count */}
           {!loading && (
             <p className="text-[#9A9A9A] text-xs uppercase tracking-widest">
@@ -151,7 +156,9 @@ const Homepage = () => {
           {/* No search results */}
           {!loading && (products?.length ?? 0) > 0 && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <span className="text-4xl">🔍</span>
+              <span className="text-4xl">
+                <SearchIcon className="w-8 h-8" />
+              </span>
               <h2
                 className="text-[#1A1A1A] font-light text-xl"
                 style={{ fontFamily: "'Nib Pro', serif" }}
@@ -178,7 +185,7 @@ const Homepage = () => {
         </main>
 
         {/* ── Footer ──────────────────────────────────────────────── */}
-        <footer className="border-t border-gray-100 px-10 py-6 flex items-center justify-between bg-white">
+        <footer className="border-t border-gray-100 px-10 py-6 flex items-center justify-between bg-white flex-shrink-0">
           <span className="text-[#9A9A9A] text-xs uppercase tracking-widest">
             © {new Date().getFullYear()} Elevate Store
           </span>

@@ -8,19 +8,20 @@ const AppLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
-    <>
+    <div className="h-screen flex flex-col overflow-hidden">
       <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} />
-      <Outlet
-        context={{
-          mobileSidebarOpen,
-          setMobileSidebarOpen,
-          sidebarCollapsed,
-          setSidebarCollapsed,
-        }}
-      />
-    </>
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        <Outlet
+          context={{
+            mobileSidebarOpen,
+            setMobileSidebarOpen,
+            sidebarCollapsed,
+            setSidebarCollapsed,
+          }}
+        />
+      </div>
+    </div>
   );
 };
 
 export default AppLayout;
-

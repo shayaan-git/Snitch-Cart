@@ -18,13 +18,16 @@ export const routes = createBrowserRouter([
     path: "/register",
     element: <Register />,
   },
+
   // http://localhost:5173/login
   {
     path: "/login",
     element: <Login />,
   },
+
+  // Layout routes - Router first renders <AppLayout /> as the parent shell, then slots the matching child into it.
   {
-    element: <AppLayout />,
+    element: <AppLayout />, // no path → always rendered, never unmounts
     children: [
       // http://localhost:5173/
       {
@@ -32,7 +35,7 @@ export const routes = createBrowserRouter([
         element: <Homepage />,
       },
 
-      // http://localhost:5173/product/6a3cbe9cf98babc2de74c4d5
+      // http://localhost:5173/product/:productId
       {
         path: "/product/:productId",
         element: <ProductDetail />,
@@ -60,6 +63,7 @@ export const routes = createBrowserRouter([
               </Protected>
             ),
           },
+
           {
             path: "/seller/dashboard",
             element: (
@@ -68,6 +72,7 @@ export const routes = createBrowserRouter([
               </Protected>
             ),
           },
+
           {
             path: "/seller/product/:productId",
             element: (

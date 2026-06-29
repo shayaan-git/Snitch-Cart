@@ -53,10 +53,13 @@ const GoogleAuthButton = ({
   const resolvedTheme = themeClasses[theme] ? theme : "light";
 
   return (
-    <a href={href} className={`${baseClasses} ${themeClasses[resolvedTheme]}`}>
+    <a
+      href={href}
+      className={`relative flex items-center ${baseClasses} ${themeClasses[resolvedTheme]}`}
+    >
       {/* Logo container: always white bg per Google guidelines */}
       <div
-        className={`flex items-center justify-center bg-white p-2 h-full ${logoBorderClass[resolvedTheme]}`}
+        className={`absolute left-0 flex items-center justify-center bg-white p-2 h-full ${logoBorderClass[resolvedTheme]}`}
       >
         <svg
           version="1.1"
@@ -84,8 +87,8 @@ const GoogleAuthButton = ({
         </svg>
       </div>
 
-      {/* Button text */}
-      <span className="flex-1 text-center px-4">Continue with Google</span>
+      {/* Button text - truly centered */}
+      <span className="w-full text-center">Continue with Google</span>
     </a>
   );
 };

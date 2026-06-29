@@ -10,7 +10,6 @@ import {
   BoxIcon,
   RefreshIcon,
 } from "../components/icons.jsx";
-import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import SellerSidebar from "../components/SellerSidebar.jsx";
 import SkeletonCard from "../components/SkeletonCard.jsx";
 import SellerProductCard from "../components/SellerProductCard.jsx";
@@ -55,9 +54,22 @@ const Dashboard = () => {
       return 0;
     });
 
+  /* ── Highest price (rounded to 2dp to prevent float overflow) ── */
+  const highestPrice =
+    sellerProducts?.length > 0
+      ? formatPrice(
+          parseFloat(
+            Math.max(
+              ...(sellerProducts ?? []).map((p) => p.price?.amount ?? 0),
+            ).toFixed(2),
+          ),
+          (sellerProducts ?? [])[0]?.price?.currency ?? "INR",
+        )
+      : "—";
+
   return (
     <div
-      className="h-screen bg-[#FAF8F5] flex"
+      className="h-screen bg-[#FAF8F5] flex overflow-hidden"
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
       {/* ── Sidebar ─────────────────────────────────────────────── */}
@@ -69,20 +81,19 @@ const Dashboard = () => {
       />
 
       {/* ── Page Content ────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {/* ── Top Header Bar ──────────────────────────────────────── */}
-        {/* <HeaderBar onMenuClick={() => setMobileSidebarOpen(true)} /> */}
+      <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* ── Main ─────────────────────────────────────────────────── */}
-        <main className="flex-grow px-10 py-12 flex flex-col gap-8 overflow-y-auto">
+        <main className="flex-1 px-4 sm:px-8 lg:px-10 py-6 sm:py-10 flex flex-col gap-6 sm:gap-8 overflow-y-auto">
+
           {/* ── Page Header ────────────────────────────────────────── */}
-          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-100 pb-8">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-100 pb-6 sm:pb-8">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-normal uppercase tracking-[0.25em] text-[#C4A96B]">
                 Seller / Dashboard
               </span>
               <h1
-                className="text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight mt-1"
+                className="text-2xl sm:text-3xl font-light tracking-wide text-[#1A1A1A] leading-tight mt-1"
                 style={{ fontFamily: "'Nib Pro', serif" }}
               >
                 My Products
@@ -93,14 +104,30 @@ const Dashboard = () => {
                   : `${sellerProducts?.length ?? 0} product${(sellerProducts?.length ?? 0) !== 1 ? "s" : ""} in your collection`}
               </p>
             </div>
+            {/* Add product CTA — always visible in header */}
+            <button
+              id="add-product-btn"
+              onClick={() => navigate("/seller/create-product")}
+              className="
+                self-start sm:self-auto
+                flex items-center gap-2 px-5 py-2.5
+                bg-[#C4A96B] text-white
+                text-[10px] font-normal uppercase tracking-[0.2em]
+                hover:opacity-90 transition-opacity duration-200 cursor-pointer
+              "
+            >
+              <PlusIcon />
+              New Product
+            </button>
           </header>
 
           {/* ── Stats Row ──────────────────────────────────────────── */}
           {!loading && !error && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+              {/* Total products */}
+              <div className="bg-white border border-gray-100 px-4 sm:px-8 py-4 sm:py-6 rounded-sm">
                 <p
-                  className="text-5xl font-light text-[#1A1A1A]"
+                  className="text-3xl sm:text-5xl font-light text-[#1A1A1A] leading-none"
                   style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {sellerProducts?.length ?? 0}
@@ -109,9 +136,11 @@ const Dashboard = () => {
                   Total Products
                 </p>
               </div>
-              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm">
+
+              {/* Matching / listed */}
+              <div className="bg-white border border-gray-100 px-4 sm:px-8 py-4 sm:py-6 rounded-sm">
                 <p
-                  className="text-5xl font-light text-[#C4A96B]"
+                  className="text-3xl sm:text-5xl font-light text-[#C4A96B] leading-none"
                   style={{ fontFamily: "'Nib Pro', serif" }}
                 >
                   {filtered.length}
@@ -120,21 +149,15 @@ const Dashboard = () => {
                   {search ? "Matching" : "Listed"}
                 </p>
               </div>
-              <div className="bg-white border border-gray-100 px-8 py-6 rounded-sm hidden sm:block">
+
+              {/* Highest price — shown on all sizes, truncates if float is long */}
+              <div className="bg-white border border-gray-100 px-4 sm:px-8 py-4 sm:py-6 rounded-sm min-w-0 overflow-hidden">
                 <p
-                  className="text-5xl font-light text-[#1A1A1A]"
+                  className="text-xl sm:text-2xl lg:text-3xl font-light text-[#1A1A1A] leading-snug truncate"
                   style={{ fontFamily: "'Nib Pro', serif" }}
+                  title={highestPrice}
                 >
-                  {sellerProducts?.length > 0
-                    ? formatPrice(
-                        Math.max(
-                          ...(sellerProducts ?? []).map(
-                            (p) => p.price?.amount ?? 0,
-                          ),
-                        ),
-                        (sellerProducts ?? [])[0]?.price?.currency ?? "INR",
-                      )
-                    : "—"}
+                  {highestPrice}
                 </p>
                 <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A] mt-2">
                   Highest Price
@@ -199,7 +222,7 @@ const Dashboard = () => {
 
           {/* Error state */}
           {!loading && error && (
-            <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+            <div className="flex flex-col items-center justify-center py-16 sm:py-24 gap-6 text-center">
               <div className="text-red-300">
                 <AlertIcon />
               </div>
@@ -233,7 +256,7 @@ const Dashboard = () => {
 
           {/* Empty state */}
           {!loading && !error && (sellerProducts?.length ?? 0) === 0 && (
-            <div className="flex flex-col items-center justify-center py-24 gap-6 text-center">
+            <div className="flex flex-col items-center justify-center py-16 sm:py-24 gap-6 text-center">
               <div className="text-gray-200">
                 <BoxIcon />
               </div>
@@ -245,8 +268,7 @@ const Dashboard = () => {
                   No products listed yet
                 </h2>
                 <p className="text-[#9A9A9A] text-xs uppercase tracking-widest max-w-xs">
-                  Start building your collection by adding your first luxury
-                  item.
+                  Start building your collection by adding your first luxury item.
                 </p>
               </div>
               <button
@@ -271,7 +293,7 @@ const Dashboard = () => {
             !error &&
             (sellerProducts?.length ?? 0) > 0 &&
             filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="flex flex-col items-center justify-center py-16 sm:py-20 gap-4 text-center">
                 <span className="text-4xl">🔍</span>
                 <h2
                   className="text-[#1A1A1A] font-light text-xl"

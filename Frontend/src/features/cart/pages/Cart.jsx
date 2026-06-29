@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate, useOutletContext } from "react-router";
 import { useCart } from "../hook/useCart";
-import HeaderBar from "../../shared/components/HeaderBar.jsx";
 import BuyerSidebar from "../../products/components/BuyerSidebar.jsx";
 import { formatPrice } from "../../products/utils/formatters.js";
 import {
@@ -12,113 +11,7 @@ import {
   SparkleIcon,
   TrashIcon,
 } from "../../products/components/icons.jsx";
-
-/* ─── Sample Data Fallback (matching user prompt specifications) ──────── */
-const SAMPLE_CART_DATA = [
-  {
-    _id: "6a3cbf9ff98babc2de74c516",
-    product: {
-      _id: "6a3cbe9cf98babc2de74c4d5",
-      title: "Polo T - Blue style",
-      description: "By Elevate & Co.",
-      attributes: {
-        Size: "S, M, L, XL",
-      },
-      seller: "6a264289dcfe5189602d92f2",
-      stock: 50,
-      price: {
-        amount: 499,
-        currency: "INR",
-      },
-      images: [
-        {
-          url: "https://ik.imagekit.io/shnxjeg2o/elevate/blueT_X4ETwQTAm.jpg",
-          _id: "6a3cbe9cf98babc2de74c4d6",
-        },
-        {
-          url: "https://ik.imagekit.io/shnxjeg2o/elevate/KdcRvFG1_ecb371c490cd4f1b9279ecc16efae80c_SnK-u7b5H.jpg",
-          _id: "6a3cbe9cf98babc2de74c4d7",
-        },
-      ],
-      variants: [
-        {
-          images: [
-            {
-              url: "https://ik.imagekit.io/shnxjeg2o/elevate/6SmkPepM_be76eb74502a4305be93de01db777427_JsVxW47UX.jpg",
-              _id: "6a3cbf0ff98babc2de74c4e9",
-            },
-            {
-              url: "https://ik.imagekit.io/shnxjeg2o/elevate/blueT-1_9qws7IwFr.jpg",
-              _id: "6a3cbf0ff98babc2de74c4ea",
-            },
-          ],
-          stock: 50,
-          attributes: {
-            Size: "XXL",
-          },
-          price: {
-            amount: 499,
-            currency: "INR",
-          },
-          _id: "6a3cbf0ff98babc2de74c4e8",
-        },
-      ],
-    },
-    quantity: 1,
-    price: {
-      amount: 499,
-      currency: "INR",
-    },
-  },
-  {
-    _id: "6a3cbfaaf98babc2de74c522",
-    product: {
-      _id: "6a3cbe9cf98babc2de74c4d5",
-      title: "Polo T - Blue style",
-      description: "By Elevate & Co.",
-      attributes: {
-        Size: "S, M, L, XL",
-      },
-      seller: "6a264289dcfe5189602d92f2",
-      stock: 50,
-      price: {
-        amount: 499,
-        currency: "INR",
-      },
-      images: [
-        {
-          url: "https://ik.imagekit.io/shnxjeg2o/elevate/blueT_X4ETwQTAm.jpg",
-          _id: "6a3cbe9cf98babc2de74c4d6",
-        },
-      ],
-      variants: [
-        {
-          images: [
-            {
-              url: "https://ik.imagekit.io/shnxjeg2o/elevate/6SmkPepM_be76eb74502a4305be93de01db777427_JsVxW47UX.jpg",
-              _id: "6a3cbf0ff98babc2de74c4e9",
-            },
-          ],
-          stock: 50,
-          attributes: {
-            Size: "XXL",
-          },
-          price: {
-            amount: 499,
-            currency: "INR",
-          },
-          _id: "6a3cbf0ff98babc2de74c4e8",
-        },
-      ],
-    },
-    variant: "6a3cbf0ff98babc2de74c4e8",
-    quantity: 2,
-    price: {
-      amount: 499,
-      currency: "INR",
-    },
-  },
-];
+import Loader from "../../shared/components/Loader.jsx";
 
 /* ─── Cart Page Component ─────────────────────────────────────────────── */
 const Cart = () => {
@@ -173,6 +66,10 @@ const Cart = () => {
   const shipping = subtotal > 0 ? (subtotal >= 1500 ? 0 : 99) : 0;
   const total = subtotal + shipping;
 
+  if(!loaded){
+    return <Loader/>
+  }
+
   return (
     <div
       className="h-screen overflow-hidden bg-[#FAF8F5] flex"
@@ -199,7 +96,7 @@ const Cart = () => {
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[#C4A96B] text-[10px] font-normal uppercase tracking-[0.25em] mb-1">
                   <SparkleIcon />
-                  Elevate | Rise Above Ordinary
+                  Elevate | Above the Ordinary
                 </span>
                 <h1
                   className="text-4xl sm:text-5xl font-light text-[#1A1A1A] tracking-wide"

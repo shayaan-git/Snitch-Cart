@@ -7,6 +7,7 @@ import {
   LogoutIcon,
   CartIcon,
   AccountIcon,
+  StoreNavIcon,
 } from "../../products/components/icons.jsx";
 
 const HeaderBar = ({ onMenuClick }) => {
@@ -55,11 +56,26 @@ const HeaderBar = ({ onMenuClick }) => {
         <div className="flex items-center gap-6">
           {user.role !== "seller" && (
             <Link
+              to="/"
+              className="text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
+            >
+              <span className="flex items-center gap-2">
+                Store
+                <StoreNavIcon />
+              </span>
+            </Link>
+          )}
+
+          {user.role !== "seller" && (
+            <Link
               to="/cart"
               aria-label="Shopping Cart"
               className="relative text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
             >
-              <CartIcon />
+              <span className="flex items-center gap-2">
+                Cart
+                <CartIcon />
+              </span>
               {cartItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#C4A96B] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-sans">
                   {cartItems.length}
@@ -74,7 +90,10 @@ const HeaderBar = ({ onMenuClick }) => {
               aria-label="User Account"
               className="text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
             >
-              <AccountIcon />
+              <span className="flex items-center gap-2">
+                Account
+                <AccountIcon />
+              </span>
             </button>
 
             {/* Dropdown */}
