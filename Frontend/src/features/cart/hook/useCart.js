@@ -36,6 +36,11 @@ export const useCart = () => {
   const handleGetCart = async () => {
     try {
       const data = await getCart();
+      // DEBUG — remove once originalPrice is confirmed present on cart items
+      // console.log(
+      //   "[Cart] raw item[0]:",
+      //   JSON.stringify(data.cart.items?.[0], null, 2),
+      // );
       dispatch(setItem(data.cart.items));
     } catch (error) {
       console.error("Error in getting cart items : ", error);

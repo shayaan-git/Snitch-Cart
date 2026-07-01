@@ -72,17 +72,29 @@ const Cart = () => {
 
   /* ── Per-item price-drop savings summed across all items ── */
   const totalItemSavings = items.reduce((sum, item) => {
-    if (
-      item.originalPrice !== undefined &&
-      item.originalPrice > (item.price?.amount || 0)
-    ) {
-      return (
-        sum +
-        (item.originalPrice - (item.price?.amount || 0)) * (item.quantity || 1)
-      );
+    const origAmt = item.originalPrice?.amount;
+    const currAmt = item.price?.amount;
+    if (origAmt !== undefined && currAmt !== undefined && origAmt > currAmt) {
+      return sum + (origAmt - currAmt) * (item.quantity || 1);
     }
     return sum;
   }, 0);
+
+  /* ── Check if any item has stock issues ── */
+  const hasStockIssues = items.some((item) => {
+    const prod = item.product || {};
+    const variantObj = prod.variants?.find((v) => v._id === item.variant);
+    const stock =
+      item.stock !== undefined
+        ? Number(item.stock)
+        : variantObj?.stock !== undefined
+          ? Number(variantObj.stock)
+          : prod.stock !== undefined
+            ? Number(prod.stock)
+            : undefined;
+    if (stock === undefined || isNaN(stock)) return false;
+    return stock === 0 || item.quantity > stock;
+  });
 
   if (!loaded) {
     return <Loader />;
@@ -170,16 +182,26 @@ const Cart = () => {
                       (v) => v._id === variantId,
                     );
 
-                    /* Resolve Thumbnail & Attributes */
+                    /* Resolve Thumbnail & Attributes & Stock */
                     const imgUrl =
                       variantObj?.images?.[0]?.url || prod.images?.[0]?.url;
                     const attrs =
                       variantObj?.attributes || prod.attributes || {};
+                    const stockVal =
+                      item.stock !== undefined
+                        ? Number(item.stock)
+                        : variantObj?.stock !== undefined
+                          ? Number(variantObj.stock)
+                          : prod.stock !== undefined
+                            ? Number(prod.stock)
+                            : undefined;
 
                     return (
                       <article
                         key={item._id}
-                        className="group bg-white border border-gray-100 p-5 sm:p-6 rounded-sm hover:border-[#C4A96B]/40 hover:shadow-sm transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center overflow-hidden"
+                        className={`group bg-white border border-gray-100 p-5 sm:p-6 rounded-sm hover:border-[#C4A96B]/40 hover:shadow-sm transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center overflow-hidden ${
+                          stockVal === 0 ? "opacity-50" : ""
+                        }`}
                       >
                         {/* Thumbnail Image */}
                         <div
@@ -230,30 +252,51 @@ const Cart = () => {
                           </div>
 
                           {/* Per-item price-change message */}
-                          {item.originalPrice !== undefined &&
-                            item.price?.amount !== item.originalPrice &&
-                            (() => {
-                              const currentPrice = item.price?.amount || 0;
-                              const priceRose =
-                                currentPrice > item.originalPrice;
-                              const itemSavings = priceRose
-                                ? 0
-                                : (item.originalPrice - currentPrice) *
-                                  (item.quantity || 1);
-                              return (
-                                <p
-                                  className={`text-[10px] uppercase tracking-widest mt-1 ${
-                                    priceRose
-                                      ? "text-red-500"
-                                      : "text-green-600"
-                                  }`}
-                                >
-                                  {priceRose
-                                    ? `You will get this item at ${formatPrice(currentPrice, item.price?.currency)}`
-                                    : `You will get this item at ${formatPrice(currentPrice, item.price?.currency)}, save ${formatPrice(itemSavings, item.price?.currency)}`}
+                          {(() => {
+                            const origAmt = item.originalPrice?.amount;
+                            const currAmt = item.price?.amount;
+                            if (
+                              origAmt === undefined ||
+                              currAmt === undefined ||
+                              origAmt === currAmt
+                            ) {
+                              return null;
+                            }
+                            const priceRose = currAmt > origAmt;
+                            const itemSavings = priceRose
+                              ? 0
+                              : (origAmt - currAmt) * (item.quantity || 1);
+                            return (
+                              <p
+                                className={`text-[10px] uppercase tracking-widest mt-1.5 ${
+                                  priceRose ? "text-red-500" : "text-green-600"
+                                }`}
+                              >
+                                {priceRose
+                                  ? `You will get this item at ${formatPrice(currAmt, item.price?.currency)}`
+                                  : `You will get this item at ${formatPrice(currAmt, item.price?.currency)}, save ${formatPrice(itemSavings, item.price?.currency)}`}
+                              </p>
+                            );
+                          })()}
+
+                          {/* Live stock messages */}
+                          {stockVal !== undefined && !isNaN(stockVal) && (
+                            <>
+                              {stockVal === 0 ? (
+                                <p className="text-[10px] uppercase tracking-widest mt-1.5 text-red-500 font-medium">
+                                  Out of stock
                                 </p>
-                              );
-                            })()}
+                              ) : item.quantity > stockVal ? (
+                                <p className="text-[10px] uppercase tracking-widest mt-1.5 text-red-500">
+                                  Only {stockVal} left in stock — please reduce quantity
+                                </p>
+                              ) : stockVal <= 3 ? (
+                                <p className="text-[10px] uppercase tracking-widest mt-1.5 text-amber-500">
+                                  Only {stockVal} left in stock
+                                </p>
+                              ) : null}
+                            </>
+                          )}
 
                           {/* Mobile Unit Price */}
                           <div className="sm:hidden mt-2 text-sm text-[#9A9A9A] font-sans">
@@ -297,7 +340,7 @@ const Cart = () => {
                                   ),
                                 );
                               }}
-                              disabled={item.quantity <= 1}
+                              disabled={item.quantity <= 1 || stockVal === 0}
                               className="w-8 h-8 flex items-center justify-center text-[#1A1A1A] hover:bg-[#C4A96B] hover:text-white transition-colors duration-200 text-sm cursor-pointer disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#1A1A1A]"
                               aria-label="Decrease quantity"
                             >
@@ -321,7 +364,13 @@ const Cart = () => {
                                   ),
                                 );
                               }}
-                              className="w-8 h-8 flex items-center justify-center text-[#1A1A1A] hover:bg-[#C4A96B] hover:text-white transition-colors duration-200 text-sm cursor-pointer"
+                              disabled={
+                                (stockVal !== undefined &&
+                                  !isNaN(stockVal) &&
+                                  item.quantity >= stockVal) ||
+                                stockVal === 0
+                              }
+                              className="w-8 h-8 flex items-center justify-center text-[#1A1A1A] hover:bg-[#C4A96B] hover:text-white transition-colors duration-200 text-sm cursor-pointer disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[#1A1A1A]"
                               aria-label="Increase quantity"
                             >
                               +
@@ -388,7 +437,7 @@ const Cart = () => {
                     </div>
 
                     {totalItemSavings > 0 && (
-                      <div className="flex justify-between items-center text-[#C4A96B]">
+                      <div className="flex justify-between items-center text-green-600">
                         <span className="uppercase tracking-widest text-[10px]">
                           Price Drop Savings
                         </span>
@@ -472,9 +521,14 @@ const Cart = () => {
                   </form>
 
                   {/* Checkout CTA */}
+                  {hasStockIssues && (
+                    <p className="text-[10px] text-red-500 uppercase tracking-widest text-center mt-2">
+                      Please resolve stock issues in your cart before checking out.
+                    </p>
+                  )}
                   <button
                     type="button"
-                    disabled={items.length === 0}
+                    disabled={items.length === 0 || hasStockIssues}
                     onClick={() =>
                       alert("Proceeding to Elevate Secure Checkout…")
                     }

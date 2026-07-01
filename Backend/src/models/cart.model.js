@@ -24,7 +24,11 @@ const cartSchema = new mongoose.Schema({
             default: 1,
          },
          price: priceSchema,
-         originalPrice: priceSchema
+         originalPrice: priceSchema,
+         OriginalStock: {
+            type: Number,
+            default: 0,
+         },
       },
    ],
 });

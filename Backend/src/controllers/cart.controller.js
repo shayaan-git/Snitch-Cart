@@ -85,6 +85,7 @@ export const addToCart = async (req, res) => {
       quantity,
       price,
       originalPrice: price,
+      OriginalStock: stock,
    });
 
    await cart.save();
@@ -119,10 +120,17 @@ export const getCart = async (req, res) => {
            )?.price
          : product.price;
 
+      const liveStock = item.variant
+         ? product.variants?.find(
+              (v) => v._id.toString() === item.variant.toString(),
+           )?.stock
+         : product.stock;
+
       return {
          ...item,
          price: livePrice ?? item.price, // fall back to stored price if variant/product price missing
          // originalPrice stays untouched — the frozen snapshot from addToCart
+         stock: liveStock ?? item.OriginalStock ?? 0
       };
    });
 
