@@ -1,10 +1,14 @@
 import React from "react";
 import ImageCarousel from "./ImageCarousel.jsx";
-import { EditIcon, TrashIcon } from "./icons.jsx";
+import { EditIcon, TrashIcon, SpinnerIcon } from "./icons.jsx";
 import { formatPrice, formatDate } from "../utils/formatters.js";
 
-const SellerProductCard = ({ product, onClick }) => {
+const SellerProductCard = ({ product, onClick, onEdit, onDelete, actionLoading }) => {
   const { title, description, price, images, createdAt } = product;
+
+  const isEditing  = actionLoading === "edit";
+  const isDeleting = actionLoading === "delete";
+  const isBusy     = isEditing || isDeleting;
 
   return (
     <article
@@ -58,29 +62,35 @@ const SellerProductCard = ({ product, onClick }) => {
         <button
           id={`edit-btn-${product._id}`}
           title="Edit product"
+          disabled={isBusy}
+          onClick={() => onEdit?.(product)}
           className="
             flex items-center gap-1.5 px-2.5 py-1.5
             bg-white/95 border border-gray-200
             text-[#1A1A1A] hover:text-[#C4A96B] hover:border-[#C4A96B]/40
             text-[10px] font-normal uppercase tracking-widest
             transition-all duration-150 cursor-pointer
+            disabled:opacity-50 disabled:cursor-not-allowed
           "
         >
-          <EditIcon />
+          {isEditing ? <SpinnerIcon /> : <EditIcon />}
           Edit
         </button>
         <button
           id={`delete-btn-${product._id}`}
           title="Delete product"
+          disabled={isBusy}
+          onClick={() => onDelete?.(product)}
           className="
             flex items-center gap-1.5 px-2.5 py-1.5
             bg-white/95 border border-gray-200
             text-[#1A1A1A] hover:text-red-500 hover:border-red-200
             text-[10px] font-normal uppercase tracking-widest
             transition-all duration-150 cursor-pointer
+            disabled:opacity-50 disabled:cursor-not-allowed
           "
         >
-          <TrashIcon />
+          {isDeleting ? <SpinnerIcon /> : <TrashIcon />}
           Delete
         </button>
       </div>

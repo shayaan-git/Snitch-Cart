@@ -3,12 +3,22 @@ import { authenticateSeller } from "../middlewares/auth.middleware.js";
 import {
   addProductVariant,
   createProduct,
+  updateProduct,
   getAllProducts,
   getProductDetails,
   getSellerProducts,
+  updateProductVariant,
+  deleteProductVariant,
+  deleteProduct,
 } from "../controllers/product.controller.js";
+
 import multer from "multer";
-import { createProductValidator, addVariantValidator } from "../validator/product.validator.js";
+import {
+  createProductValidator,
+  addVariantValidator,
+  updateProductValidator,
+  updateVariantValidator,
+} from "../validator/product.validator.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -55,6 +65,49 @@ router.get("/", getAllProducts);
  * @access Public
  */
 router.get("/detail/:id", getProductDetails);
+
+/**
+ * @route PATCH /api/products/:productId
+ * @description Update an existing product's details (except images)
+ * @access Private (Seller Only)
+ */
+router.patch(
+  "/:productId",
+  authenticateSeller,
+//   upload.array("images", 8),
+  updateProductValidator,
+  updateProduct,
+);
+
+/**
+ * @route PATCH /api/products/:productId/variants/:variantId
+ * @description Update a specific variant of a product
+ * @access Private (Seller Only)
+ */
+router.patch(
+  "/:productId/variants/:variantId",
+  authenticateSeller,
+  updateVariantValidator,
+  updateProductVariant,
+);
+
+/**
+ * @route DELETE /api/products/:productId/variants/:variantId
+ * @description Delete a specific variant of a product
+ * @access Private (Seller Only)
+ */
+router.delete(
+  "/:productId/variants/:variantId",
+  authenticateSeller,
+  deleteProductVariant,
+);
+
+/**
+ * @route DELETE /api/products/:productId
+ * @description Delete a product
+ * @access Private (Seller Only)
+ */
+router.delete("/:productId", authenticateSeller, deleteProduct);
 
 /**
  * @route POST /api/products/productId/variants

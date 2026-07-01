@@ -60,7 +60,7 @@ const HeaderBar = ({ onMenuClick }) => {
               className="text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
             >
               <span className="flex items-center gap-2">
-                Store
+                <span className="hidden sm:inline">Store</span>
                 <StoreNavIcon />
               </span>
             </Link>
@@ -73,7 +73,7 @@ const HeaderBar = ({ onMenuClick }) => {
               className="relative text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
             >
               <span className="flex items-center gap-2">
-                Cart
+                <span className="hidden sm:inline">Cart</span>
                 <CartIcon />
               </span>
               {cartItems.length > 0 && (
@@ -91,7 +91,7 @@ const HeaderBar = ({ onMenuClick }) => {
               className="text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer p-1 flex items-center"
             >
               <span className="flex items-center gap-2">
-                Account
+                <span className="hidden sm:inline">Account</span>
                 <AccountIcon />
               </span>
             </button>

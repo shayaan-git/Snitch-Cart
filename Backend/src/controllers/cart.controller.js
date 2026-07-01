@@ -84,6 +84,7 @@ export const addToCart = async (req, res) => {
       ...(variantId && { variant: variantId }),
       quantity,
       price,
+      originalPrice: price,
    });
 
    await cart.save();
@@ -105,10 +106,30 @@ export const getCart = async (req, res) => {
       cart = await cartModel.create({ user: user._id });
    }
 
+   // Convert to plain object so we can safely override fields for the response
+   const cartObj = cart.toObject();
+
+   cartObj.items = cartObj.items.map((item) => {
+      const product = item.product;
+      if (!product) return item; // deleted/missing product — leave as-is
+
+      const livePrice = item.variant
+         ? product.variants?.find(
+              (v) => v._id.toString() === item.variant.toString(),
+           )?.price
+         : product.price;
+
+      return {
+         ...item,
+         price: livePrice ?? item.price, // fall back to stored price if variant/product price missing
+         // originalPrice stays untouched — the frozen snapshot from addToCart
+      };
+   });
+
    return res.status(200).json({
       message: "Cart fetched successfully",
       success: true,
-      cart,
+      cart: cartObj,
    });
 };
 

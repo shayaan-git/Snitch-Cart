@@ -4,6 +4,10 @@ import {
   getAllProducts,
   getProductById,
   addProductVariant,
+  updateSellerProduct,
+  updateProductVariant,
+  deleteProductVariant,
+  deleteProduct,
 } from "../service/product.api.js";
 import { useDispatch } from "react-redux";
 import {
@@ -66,11 +70,43 @@ export const useProduct = () => {
     return data;
   }
 
+  async function handleUpdateSellerProduct(productId, updatedProduct) {
+    const data = await updateSellerProduct(productId, updatedProduct);
+    return data.product;
+  }
+
+  async function handleUpdateProductVariant(
+    productId,
+    variantId,
+    updatedVariantParams,
+  ) {
+    const data = await updateProductVariant(
+      productId,
+      variantId,
+      updatedVariantParams,
+    );
+    return data.product;
+  }
+
+  async function handleDeleteProductVariant(productId, variantId) {
+    const data = await deleteProductVariant(productId, variantId);
+    return data.product;
+  }
+
+  async function handleDeleteProduct(productId) {
+    const data = await deleteProduct(productId);
+    return data;
+  }
+
   return {
     handleCreateSellerProduct,
     handleGetSellerProduct,
     handleGetAllProducts,
     handleGetProductById,
     handleAddProductVariant,
+    handleUpdateSellerProduct,
+    handleUpdateProductVariant,
+    handleDeleteProductVariant,
+    handleDeleteProduct,
   };
 };

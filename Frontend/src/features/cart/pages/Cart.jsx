@@ -17,7 +17,12 @@ import Loader from "../../shared/components/Loader.jsx";
 const Cart = () => {
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
-  const { handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveCartItem } = useCart();
+  const {
+    handleGetCart,
+    handleIncrementCartItem,
+    handleDecrementCartItem,
+    handleRemoveCartItem,
+  } = useCart();
 
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -44,7 +49,6 @@ const Cart = () => {
     }
   }, [loaded, cartItems]);
 
-
   const handleApplyPromo = (e) => {
     e.preventDefault();
     if (promoCode.trim().toUpperCase() === "ELEVATE10") {
@@ -66,8 +70,22 @@ const Cart = () => {
   const shipping = subtotal > 0 ? (subtotal >= 1500 ? 0 : 99) : 0;
   const total = subtotal + shipping;
 
-  if(!loaded){
-    return <Loader/>
+  /* ── Per-item price-drop savings summed across all items ── */
+  const totalItemSavings = items.reduce((sum, item) => {
+    if (
+      item.originalPrice !== undefined &&
+      item.originalPrice > (item.price?.amount || 0)
+    ) {
+      return (
+        sum +
+        (item.originalPrice - (item.price?.amount || 0)) * (item.quantity || 1)
+      );
+    }
+    return sum;
+  }, 0);
+
+  if (!loaded) {
+    return <Loader />;
   }
 
   return (
@@ -161,7 +179,7 @@ const Cart = () => {
                     return (
                       <article
                         key={item._id}
-                        className="group bg-white border border-gray-100 p-5 sm:p-6 rounded-sm hover:border-[#C4A96B]/40 hover:shadow-sm transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center"
+                        className="group bg-white border border-gray-100 p-5 sm:p-6 rounded-sm hover:border-[#C4A96B]/40 hover:shadow-sm transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center overflow-hidden"
                       >
                         {/* Thumbnail Image */}
                         <div
@@ -185,18 +203,17 @@ const Cart = () => {
 
                         {/* Product Info */}
                         <div className="flex-1 min-w-0 flex flex-col gap-1.5 font-sans">
-                          <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">
+                          <span className="text-[10px] uppercase tracking-widest text-[#9A9A9A] break-words">
                             {prod.description || "Elevate & Co."}
                           </span>
                           <Link
                             to={`/product/${prod._id}`}
-                            className="text-xl font-normal text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 truncate font-serif"
+                            className="text-xl font-normal text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 font-serif"
                             style={{
-                              fontFamily:
-                                "'Nib Pro', serif",
+                              fontFamily: "'Nib Pro', serif",
                             }}
                           >
-                            {prod.title || "Luxury Piece"}
+                            {prod.title || "Elevate & Co."}
                           </Link>
 
                           {/* Attribute Badges */}
@@ -211,6 +228,32 @@ const Cart = () => {
                               </span>
                             ))}
                           </div>
+
+                          {/* Per-item price-change message */}
+                          {item.originalPrice !== undefined &&
+                            item.price?.amount !== item.originalPrice &&
+                            (() => {
+                              const currentPrice = item.price?.amount || 0;
+                              const priceRose =
+                                currentPrice > item.originalPrice;
+                              const itemSavings = priceRose
+                                ? 0
+                                : (item.originalPrice - currentPrice) *
+                                  (item.quantity || 1);
+                              return (
+                                <p
+                                  className={`text-[10px] uppercase tracking-widest mt-1 ${
+                                    priceRose
+                                      ? "text-red-500"
+                                      : "text-green-600"
+                                  }`}
+                                >
+                                  {priceRose
+                                    ? `You will get this item at ${formatPrice(currentPrice, item.price?.currency)}`
+                                    : `You will get this item at ${formatPrice(currentPrice, item.price?.currency)}, save ${formatPrice(itemSavings, item.price?.currency)}`}
+                                </p>
+                              );
+                            })()}
 
                           {/* Mobile Unit Price */}
                           <div className="sm:hidden mt-2 text-sm text-[#9A9A9A] font-sans">
@@ -228,8 +271,7 @@ const Cart = () => {
                           <span
                             className="text-xl font-light text-[#1A1A1A] tracking-tight font-serif"
                             style={{
-                              fontFamily:
-                                "'Nib Pro', serif",
+                              fontFamily: "'Nib Pro', serif",
                             }}
                           >
                             {formatPrice(
@@ -295,7 +337,9 @@ const Cart = () => {
                                 variantId,
                                 itemId: item._id,
                               });
-                              setItems((prev) => prev.filter((i) => i._id !== item._id));
+                              setItems((prev) =>
+                                prev.filter((i) => i._id !== item._id),
+                              );
                             }}
                             className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1 cursor-pointer flex items-center gap-1 text-[10px] uppercase tracking-widest sm:mt-1"
                           >
@@ -342,6 +386,17 @@ const Cart = () => {
                         {formatPrice(rawSubtotal, currency)}
                       </span>
                     </div>
+
+                    {totalItemSavings > 0 && (
+                      <div className="flex justify-between items-center text-[#C4A96B]">
+                        <span className="uppercase tracking-widest text-[10px]">
+                          Price Drop Savings
+                        </span>
+                        <span className="font-light text-sm">
+                          −{formatPrice(totalItemSavings, currency)}
+                        </span>
+                      </div>
+                    )}
 
                     {discount > 0 && (
                       <div className="flex justify-between items-center text-[#C4A96B]">

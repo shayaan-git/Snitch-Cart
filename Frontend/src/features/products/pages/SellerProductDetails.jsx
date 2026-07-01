@@ -12,6 +12,7 @@ import {
   CameraIcon,
   ChevronImgLeft,
   ChevronImgRight,
+  SpinnerIcon,
 } from "../components/icons.jsx";
 
 /* ─── Constants ─────────────────────────────────────────────────────── */
@@ -41,8 +42,92 @@ const SkeletonDetail = () => (
   </div>
 );
 
+/* ─── Toast ──────────────────────────────────────────────────────────── */
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [message, onClose]);
+
+  const accent = type === "error" ? "#ef4444" : "#C4A96B";
+
+  return (
+    <div
+      className="fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-5 py-3.5 bg-white shadow-lg border"
+      style={{ borderLeftWidth: 3, borderLeftColor: accent, minWidth: 260 }}
+    >
+      <span className="text-[#1A1A1A] text-xs tracking-wide flex-1">{message}</span>
+      <button
+        onClick={onClose}
+        className="text-gray-400 hover:text-[#1A1A1A] transition-colors cursor-pointer"
+      >
+        <XIcon />
+      </button>
+    </div>
+  );
+};
+
+/* ─── Delete Variant Dialog ───────────────────────────────────────── */
+const DeleteVariantDialog = ({ open, onCancel, onConfirm, loading }) => {
+  if (!open) return null;
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/40 z-[100]"
+        onClick={!loading ? onCancel : undefined}
+        aria-hidden="true"
+      />
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-sm flex flex-col shadow-2xl">
+          <div className="flex items-center justify-between px-6 h-12 border-b border-gray-100">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-red-500">
+              Confirm Delete
+            </span>
+            {!loading && (
+              <button
+                onClick={onCancel}
+                className="text-gray-400 hover:text-[#1A1A1A] transition-colors cursor-pointer p-1"
+              >
+                <XIcon />
+              </button>
+            )}
+          </div>
+          <div className="px-6 py-6 flex flex-col gap-3">
+            <p
+              className="text-[#1A1A1A] text-base font-light leading-snug"
+              style={{ fontFamily: "'Nib Pro', serif" }}
+            >
+              Delete this variant?
+            </p>
+            <p className="text-[#9A9A9A] text-xs uppercase tracking-widest leading-relaxed">
+              This action cannot be undone.
+            </p>
+          </div>
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={onCancel}
+              disabled={loading}
+              className="flex-1 py-2.5 border border-gray-200 text-[10px] uppercase tracking-widest text-[#9A9A9A] hover:border-gray-400 hover:text-[#1A1A1A] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className="flex-1 py-2.5 bg-red-500 text-white text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? <SpinnerIcon /> : null}
+              {loading ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 /* ─── Variant Card ───────────────────────────────────────────────────── */
-const VariantCard = ({ variant, idx, onEdit, onDelete, onStockChange }) => {
+const VariantCard = ({ variant, idx, onEdit, onDelete, onStockChange, actionLoading }) => {
   const [localStock, setLocalStock] = useState(variant.stock ?? 0);
   const [stockEditing, setStockEditing] = useState(false);
 
@@ -178,15 +263,17 @@ const VariantCard = ({ variant, idx, onEdit, onDelete, onStockChange }) => {
         <div className="flex items-center gap-3 pt-1 border-t border-gray-100">
           <button
             onClick={() => onEdit(idx)}
-            className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer"
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-[#1A1A1A] hover:text-[#C4A96B] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <EditIcon /> Edit
+            {actionLoading === "edit" ? <SpinnerIcon /> : <EditIcon />} Edit
           </button>
           <button
             onClick={() => onDelete(idx)}
-            className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-[#9A9A9A] hover:text-red-500 transition-colors duration-200 cursor-pointer"
+            disabled={!!actionLoading}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-[#9A9A9A] hover:text-red-500 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <TrashIcon /> Delete
+            {actionLoading === "delete" ? <SpinnerIcon /> : <TrashIcon />} Delete
           </button>
         </div>
       </div>
@@ -455,7 +542,12 @@ const VariantModal = ({ open, onClose, onSave, initialData, saving }) => {
 const SellerProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { handleGetProductById, handleAddProductVariant } = useProduct();
+  const {
+    handleGetProductById,
+    handleAddProductVariant,
+    handleUpdateProductVariant,
+    handleDeleteProductVariant,
+  } = useProduct();
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
@@ -464,10 +556,24 @@ const SellerProductDetails = () => {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
   const [saving, setSaving] = useState(false);
 
-  /* variant state — lives locally until backend is wired */
+  /* variant state */
   const [variants, setVariants] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIdx, setEditingIdx] = useState(null); // null = adding new
+
+  /* per-variant in-flight loading  { [variantId]: "edit" | "delete" } */
+  const [variantActionLoading, setVariantActionLoading] = useState({});
+
+  /* delete confirm dialog */
+  const [deleteVariantIdx, setDeleteVariantIdx] = useState(null);
+  const [variantDeleteLoading, setVariantDeleteLoading] = useState(false);
+
+  /* toast */
+  const [toast, setToast] = useState(null);
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ message, type });
+  }, []);
+  const hideToast = useCallback(() => setToast(null), []);
 
   useEffect(() => {
     (async () => {
@@ -487,12 +593,35 @@ const SellerProductDetails = () => {
   const handleAddOrUpdateVariant = useCallback(
     async (variantData) => {
       if (editingIdx !== null) {
-        // editing: local-only for now (future work)
-        setVariants((prev) =>
-          prev.map((v, i) => (i === editingIdx ? variantData : v)),
-        );
-        setModalOpen(false);
-        setEditingIdx(null);
+        // EDIT — call the backend
+        const variant = variants[editingIdx];
+        const variantId = variant._id;
+        setSaving(true);
+        setVariantActionLoading((prev) => ({ ...prev, [variantId]: "edit" }));
+        try {
+          const result = await handleUpdateProductVariant(productId, variantId, variantData);
+          const updatedVariants = result?.variants ?? result?.product?.variants ?? null;
+          if (updatedVariants) {
+            setVariants(updatedVariants);
+          } else {
+            setVariants((prev) =>
+              prev.map((v, i) => (i === editingIdx ? { ...v, ...variantData } : v)),
+            );
+          }
+          showToast("Variant updated successfully.");
+          setModalOpen(false);
+          setEditingIdx(null);
+        } catch (err) {
+          const msg = err?.response?.data?.message || "Failed to update variant.";
+          showToast(msg, "error");
+        } finally {
+          setSaving(false);
+          setVariantActionLoading((prev) => {
+            const next = { ...prev };
+            delete next[variantId];
+            return next;
+          });
+        }
       } else {
         // ADD — call the backend
         setSaving(true);
@@ -504,21 +633,52 @@ const SellerProductDetails = () => {
             variantData,
           ];
           setVariants(updatedVariants);
+          showToast("Variant added successfully.");
           setModalOpen(false);
           setEditingIdx(null);
         } catch (err) {
-          console.error("Failed to add variant:", err);
+          const msg = err?.response?.data?.message || "Failed to add variant.";
+          showToast(msg, "error");
         } finally {
           setSaving(false);
         }
       }
     },
-    [editingIdx, productId, handleAddProductVariant, variants],
+    [editingIdx, productId, handleAddProductVariant, handleUpdateProductVariant, variants, showToast],
   );
 
-  const handleDeleteVariant = useCallback((idx) => {
-    setVariants((prev) => prev.filter((_, i) => i !== idx));
+  /* Open delete confirm for a variant */
+  const openDeleteVariant = useCallback((idx) => {
+    setDeleteVariantIdx(idx);
   }, []);
+
+  const cancelDeleteVariant = useCallback(() => {
+    setDeleteVariantIdx(null);
+  }, []);
+
+  const confirmDeleteVariant = useCallback(async () => {
+    if (deleteVariantIdx === null) return;
+    const variant = variants[deleteVariantIdx];
+    const variantId = variant._id;
+    setVariantDeleteLoading(true);
+    setVariantActionLoading((prev) => ({ ...prev, [variantId]: "delete" }));
+    try {
+      await handleDeleteProductVariant(productId, variantId);
+      setVariants((prev) => prev.filter((_, i) => i !== deleteVariantIdx));
+      showToast("Variant deleted.");
+      setDeleteVariantIdx(null);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to delete variant.";
+      showToast(msg, "error");
+    } finally {
+      setVariantDeleteLoading(false);
+      setVariantActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[variantId];
+        return next;
+      });
+    }
+  }, [deleteVariantIdx, variants, handleDeleteProductVariant, productId, showToast]);
 
   const handleStockChange = useCallback((idx, newStock) => {
     setVariants((prev) =>
@@ -832,12 +992,13 @@ const SellerProductDetails = () => {
                 <div className="flex flex-col gap-4">
                   {variants.map((variant, idx) => (
                     <VariantCard
-                      key={idx}
+                      key={variant._id ?? idx}
                       variant={variant}
                       idx={idx}
                       onEdit={openEditModal}
-                      onDelete={handleDeleteVariant}
+                      onDelete={openDeleteVariant}
                       onStockChange={handleStockChange}
+                      actionLoading={variantActionLoading[variant._id] ?? null}
                     />
                   ))}
                 </div>
@@ -858,6 +1019,19 @@ const SellerProductDetails = () => {
         initialData={editingIdx !== null ? variants[editingIdx] : null}
         saving={saving}
       />
+
+      {/* ── Delete Variant Confirm ───────────────────────────────── */}
+      <DeleteVariantDialog
+        open={deleteVariantIdx !== null}
+        onCancel={cancelDeleteVariant}
+        onConfirm={confirmDeleteVariant}
+        loading={variantDeleteLoading}
+      />
+
+      {/* ── Toast ───────────────────────────────────────────────── */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+      )}
     </div>
   );
 };

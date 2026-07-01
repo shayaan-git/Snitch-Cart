@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useOutletContext } from "react-router";
 import { useProduct } from "../hook/useProduct.js";
@@ -9,14 +9,249 @@ import {
   AlertIcon,
   BoxIcon,
   RefreshIcon,
+  XIcon,
+  SpinnerIcon,
 } from "../components/icons.jsx";
 import SellerSidebar from "../components/SellerSidebar.jsx";
 import SkeletonCard from "../components/SkeletonCard.jsx";
 import SellerProductCard from "../components/SellerProductCard.jsx";
 
-/* ─── Dashboard ────────────────────────────────────────────────────── */
+/* ─── Constants ──────────────────────────────────────────────────── */
+const CURRENCIES = ["INR", "USD", "EUR", "GBP"];
+
+/* ─── Toast ──────────────────────────────────────────────────────── */
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [message, onClose]);
+
+  const accent = type === "error" ? "#ef4444" : "#C4A96B";
+
+  return (
+    <div
+      className="fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-5 py-3.5 bg-white shadow-lg border"
+      style={{ borderLeftWidth: 3, borderLeftColor: accent, minWidth: 260 }}
+    >
+      <span className="text-[#1A1A1A] text-xs tracking-wide flex-1">{message}</span>
+      <button
+        onClick={onClose}
+        className="text-gray-400 hover:text-[#1A1A1A] transition-colors cursor-pointer"
+      >
+        <XIcon />
+      </button>
+    </div>
+  );
+};
+
+/* ─── Delete Confirm Dialog ───────────────────────────────────────── */
+const DeleteConfirmDialog = ({ product, onCancel, onConfirm, loading }) => {
+  if (!product) return null;
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 z-[100]"
+        onClick={!loading ? onCancel : undefined}
+        aria-hidden="true"
+      />
+      {/* Dialog */}
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-sm flex flex-col shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 h-12 border-b border-gray-100">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-red-500">
+              Confirm Delete
+            </span>
+            {!loading && (
+              <button
+                onClick={onCancel}
+                className="text-gray-400 hover:text-[#1A1A1A] transition-colors cursor-pointer p-1"
+              >
+                <XIcon />
+              </button>
+            )}
+          </div>
+          {/* Body */}
+          <div className="px-6 py-6 flex flex-col gap-3">
+            <p
+              className="text-[#1A1A1A] text-base font-light leading-snug"
+              style={{ fontFamily: "'Nib Pro', serif" }}
+            >
+              Delete &ldquo;{product.title}&rdquo;?
+            </p>
+            <p className="text-[#9A9A9A] text-xs uppercase tracking-widest leading-relaxed">
+              This action cannot be undone. The product will be permanently removed.
+            </p>
+          </div>
+          {/* Footer */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={onCancel}
+              disabled={loading}
+              className="flex-1 py-2.5 border border-gray-200 text-[10px] uppercase tracking-widest text-[#9A9A9A] hover:border-gray-400 hover:text-[#1A1A1A] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className="flex-1 py-2.5 bg-red-500 text-white text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {loading ? <SpinnerIcon /> : null}
+              {loading ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ─── Edit Product Modal (drawer) ─────────────────────────────────── */
+const EditProductModal = ({ product, onClose, onSave, saving }) => {
+  const [title, setTitle]               = useState(product?.title ?? "");
+  const [description, setDescription]   = useState(product?.description ?? "");
+  const [priceAmount, setPriceAmount]   = useState(product?.price?.amount ?? "");
+  const [priceCurrency, setPriceCurrency] = useState(product?.price?.currency ?? "INR");
+  const [stock, setStock]               = useState(product?.stock ?? 0);
+
+  // Reset form if product changes (shouldn't happen mid-open, but just in case)
+  useEffect(() => {
+    setTitle(product?.title ?? "");
+    setDescription(product?.description ?? "");
+    setPriceAmount(product?.price?.amount ?? "");
+    setPriceCurrency(product?.price?.currency ?? "INR");
+    setStock(product?.stock ?? 0);
+  }, [product]);
+
+  if (!product) return null;
+
+  const handleSave = () => {
+    onSave(product._id, {
+      title,
+      description,
+      stock: Number(stock),
+      price: { amount: Number(priceAmount), currency: priceCurrency },
+    });
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 z-[100]"
+        onClick={!saving ? onClose : undefined}
+        aria-hidden="true"
+      />
+      {/* Drawer */}
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[110] flex flex-col shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 h-14 border-b border-gray-100 flex-shrink-0">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-[#C4A96B]">
+            Edit Product
+          </span>
+          {!saving && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-[#1A1A1A] transition-colors duration-200 cursor-pointer p-1"
+            >
+              <XIcon />
+            </button>
+          )}
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-8">
+          {/* Title */}
+          <section className="flex flex-col gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Title</p>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Product title"
+              className="w-full border-0 border-b border-gray-300 bg-transparent text-sm text-[#1A1A1A] placeholder:text-gray-300 outline-none py-1 focus:border-gray-800 transition-colors"
+            />
+          </section>
+
+          {/* Description */}
+          <section className="flex flex-col gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Description</p>
+            <textarea
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Product description"
+              className="w-full border-0 border-b border-gray-300 bg-transparent text-sm text-[#1A1A1A] placeholder:text-gray-300 outline-none py-1 focus:border-gray-800 transition-colors resize-none leading-relaxed"
+            />
+          </section>
+
+          {/* Price */}
+          <section className="flex flex-col gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Price</p>
+            <div className="flex gap-4">
+              <input
+                type="number"
+                min="0"
+                value={priceAmount}
+                onChange={(e) => setPriceAmount(e.target.value)}
+                placeholder="Amount"
+                className="flex-1 border-0 border-b border-gray-300 bg-transparent text-sm text-[#1A1A1A] placeholder:text-gray-300 outline-none py-1 focus:border-gray-800 transition-colors"
+              />
+              <select
+                value={priceCurrency}
+                onChange={(e) => setPriceCurrency(e.target.value)}
+                className="border-0 border-b border-gray-300 bg-transparent text-sm text-[#1A1A1A] outline-none py-1 focus:border-gray-800 transition-colors cursor-pointer appearance-none min-w-[72px]"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </section>
+
+          {/* Stock */}
+          <section className="flex flex-col gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-[#9A9A9A]">Stock Quantity</p>
+            <input
+              type="number"
+              min="0"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              placeholder="0"
+              className="w-full border-0 border-b border-gray-300 bg-transparent text-sm text-[#1A1A1A] placeholder:text-gray-300 outline-none py-1 focus:border-gray-800 transition-colors"
+            />
+          </section>
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 py-5 border-t border-gray-100 flex gap-3 flex-shrink-0">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 py-3 border border-gray-200 text-[10px] uppercase tracking-widest text-[#9A9A9A] hover:border-gray-400 hover:text-[#1A1A1A] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 py-3 bg-[#1A1A1A] text-white text-[10px] uppercase tracking-widest hover:bg-[#C4A96B] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {saving ? <SpinnerIcon /> : null}
+            {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ─── Dashboard ──────────────────────────────────────────────────── */
 const Dashboard = () => {
-  const { handleGetSellerProduct } = useProduct();
+  const { handleGetSellerProduct, handleUpdateSellerProduct, handleDeleteProduct } = useProduct();
   const navigate = useNavigate();
 
   const sellerProducts = useSelector((state) => state.product.sellerProducts);
@@ -28,6 +263,24 @@ const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { mobileSidebarOpen, setMobileSidebarOpen } = useOutletContext();
 
+  // Edit state
+  const [editTarget, setEditTarget]     = useState(null);   // product being edited
+  const [editSaving, setEditSaving]     = useState(false);
+
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState(null);   // product pending confirm
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Per-card in-flight indicator  { [productId]: "edit" | "delete" }
+  const [actionLoading, setActionLoading] = useState({});
+
+  // Toast
+  const [toast, setToast] = useState(null); // { message, type }
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ message, type });
+  }, []);
+  const hideToast = useCallback(() => setToast(null), []);
+
   useEffect(() => {
     handleGetSellerProduct();
   }, []);
@@ -38,6 +291,73 @@ const Dashboard = () => {
     },
     [navigate],
   );
+
+  /* ── Edit handlers ── */
+  const openEdit = useCallback((product) => {
+    setEditTarget(product);
+  }, []);
+
+  const closeEdit = useCallback(() => {
+    setEditTarget(null);
+  }, []);
+
+  const saveEdit = useCallback(
+    async (productId, payload) => {
+      setEditSaving(true);
+      setActionLoading((prev) => ({ ...prev, [productId]: "edit" }));
+      try {
+        await handleUpdateSellerProduct(productId, payload);
+        await handleGetSellerProduct();
+        showToast("Product updated successfully.");
+        setEditTarget(null);
+      } catch (err) {
+        const msg =
+          err?.response?.data?.message || "Failed to update product. Please try again.";
+        showToast(msg, "error");
+      } finally {
+        setEditSaving(false);
+        setActionLoading((prev) => {
+          const next = { ...prev };
+          delete next[productId];
+          return next;
+        });
+      }
+    },
+    [handleUpdateSellerProduct, handleGetSellerProduct, showToast],
+  );
+
+  /* ── Delete handlers ── */
+  const openDelete = useCallback((product) => {
+    setDeleteTarget(product);
+  }, []);
+
+  const cancelDelete = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const productId = deleteTarget._id;
+    setDeleteLoading(true);
+    setActionLoading((prev) => ({ ...prev, [productId]: "delete" }));
+    try {
+      await handleDeleteProduct(productId);
+      await handleGetSellerProduct();
+      showToast(`"${deleteTarget.title}" has been deleted.`);
+      setDeleteTarget(null);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || "Failed to delete product. Please try again.";
+      showToast(msg, "error");
+    } finally {
+      setDeleteLoading(false);
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      });
+    }
+  }, [deleteTarget, handleDeleteProduct, handleGetSellerProduct, showToast]);
 
   /* ── Derived / filtered list ── */
   const filtered = (sellerProducts ?? [])
@@ -318,12 +638,36 @@ const Dashboard = () => {
                   key={product._id}
                   product={product}
                   onClick={handleCardClick}
+                  onEdit={openEdit}
+                  onDelete={openDelete}
+                  actionLoading={actionLoading[product._id] ?? null}
                 />
               ))}
             </div>
           )}
         </main>
       </div>
+
+      {/* ── Edit Product Modal ───────────────────────────────────── */}
+      <EditProductModal
+        product={editTarget}
+        onClose={closeEdit}
+        onSave={saveEdit}
+        saving={editSaving}
+      />
+
+      {/* ── Delete Confirm Dialog ────────────────────────────────── */}
+      <DeleteConfirmDialog
+        product={deleteTarget}
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
+
+      {/* ── Toast ───────────────────────────────────────────────── */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+      )}
     </div>
   );
 };

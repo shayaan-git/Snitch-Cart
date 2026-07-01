@@ -24,6 +24,7 @@ const cartSchema = new mongoose.Schema({
             default: 1,
          },
          price: priceSchema,
+         originalPrice: priceSchema
       },
    ],
 });
